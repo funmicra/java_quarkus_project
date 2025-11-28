@@ -18,25 +18,13 @@ pipeline {
                         sudo -u jenkins ssh-keygen -R "/var/lib/jenkins/.ssh/known_hosts" -R "$HOST" || true
                         sudo -u jenkins ssh-keyscan -T 10 "$HOST" >> /var/lib/jenkins/.ssh/known_hosts 2>/dev/null || true
                     done
-                '''
-            }
-        }
-
-        stage('Register Hosts in Known Hosts') {
-            steps {
-                sh '''
-                    HOSTS="192.168.88.91 192.168.88.90"
-    
-                    for HOST in $HOSTS; do
-                        echo "Scanning $HOST..."
-                        sudo -u jenkins ssh-keyscan -T 10 $HOST >> /var/lib/jenkins/.ssh/known_hosts 2>/dev/null || true
-                    done
 
                     echo "Known hosts successfully populated."
                 '''
             }
         }
-        
+
+      
         stage('Checkout') {
             steps {
                 // Clone via SSH using Jenkins user's key
