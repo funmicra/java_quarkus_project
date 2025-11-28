@@ -10,12 +10,14 @@
     ansible_python_interpreter: /usr/bin/python3
 
   tasks:
+    
     - name: Install python and all goodies
       package:
-        - python3
-        - python3-pip
-      state: present
-      
+        name:
+          - python3
+          - python3-pip
+        state: present
+
     - name: Create Docker volume for Heimdall
       docker_volume:
         name: "{{ heimdall_container_name }}"
