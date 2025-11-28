@@ -12,7 +12,7 @@ pipeline {
         stage('Refresh SSH Host Keys') {
             steps {
                 sh '''
-                    HOSTS="rocky1 rocky2"
+                    HOSTS="192.168.88.91 192.168.88.90"
 
                     for HOST in $HOSTS; do
                         sudo -u jenkins ssh-keygen -R "$HOST" || true
@@ -25,7 +25,7 @@ pipeline {
         stage('Register Hosts in Known Hosts') {
             steps {
                 sh '''
-                    HOSTS="rocky1 rocky2"
+                    HOSTS="192.168.88.91 192.168.88.90"
     
                     for HOST in $HOSTS; do
                         echo "Scanning $HOST..."
