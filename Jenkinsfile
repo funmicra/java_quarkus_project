@@ -8,7 +8,6 @@ pipeline {
 
     
     stages {
-
         stage('Refresh SSH Host Keys') {
             steps {
                 sh '''
@@ -22,7 +21,6 @@ pipeline {
                 '''
             }
         }
-
       
         stage('Checkout') {
             steps {
