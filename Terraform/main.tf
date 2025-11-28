@@ -1,12 +1,12 @@
-resource "proxmox_vm_qemu""Eu_Dy" {
+resource "proxmox_vm_qemu""EuroDyn" {
   count       = var.vm_count
-  vmid        = 1400 + "${count.index + 1}"
+  vmid        = 1200 + "${count.index + 1}"
   onboot      = true
   vm_state    = "running"
   agent       = 1
   name        = "${var.base_name}-${count.index + 1}"
   target_node = "Dell-Optiplex"
-  clone_id    = 1400
+  clone_id    = 1200
   full_clone  = true
   memory      = 2048
   scsihw      = "virtio-scsi-single"
@@ -19,7 +19,7 @@ resource "proxmox_vm_qemu""Eu_Dy" {
   cipassword   = var.cipassword
   ciupgrade    = true
   sshkeys   = file("./ssh.keys")
-  ipconfig0  = "ip=192.168.88.104/25,gw=192.168.88.1"
+  ipconfig0  = "ip=192.168.88.${90 + count.index}/25,gw=192.168.88.1"
   searchdomain = "local"
   nameserver   = "8.8.8.8 1.1.1.1"
   skip_ipv6 = true

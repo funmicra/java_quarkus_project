@@ -16,11 +16,11 @@ variable "vmid" {
 }
 
 variable "base_name" {
-  default = "Terraform"
+  default = "EuroDyn"
 }
 
 variable "vm_template_id" {
-  default = 1300
+  default = 1200
 }
 
 variable "target_node" {
@@ -28,11 +28,11 @@ variable "target_node" {
 }
 
 variable "ciuser" {
-  default = "user"
+  default = "funmicra"
 }
 
 variable "cipassword" {
-  default = "password"
+  default = "H84zzoMc"
 }
 
 variable "ipconfig" {
