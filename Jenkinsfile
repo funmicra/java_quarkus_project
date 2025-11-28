@@ -6,7 +6,22 @@ pipeline {
         HEIMDALL_CONTAINER = "heimdall"
     }
 
+    
     stages {
+
+        stage('Refresh SSH Host Keys') {
+            steps {
+                sh '''
+                    HOSTS="rocky1 rocky2"
+
+                    for HOST in $HOSTS; do
+                        sudo -u jenkins ssh-keygen -R "$HOST" || true
+                        sudo -u jenkins ssh-keyscan -T 10 "$HOST" >> /var/lib/jenkins/.ssh/known_hosts 2>/dev/null || true
+                    done
+                '''
+            }
+        }
+
         stage('Register Hosts in Known Hosts') {
             steps {
                 sh '''
