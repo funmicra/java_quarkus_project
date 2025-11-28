@@ -15,7 +15,6 @@ pipeline {
                     HOSTS="192.168.88.91 192.168.88.90"
 
                     for HOST in $HOSTS; do
-                        sudo -u jenkins ssh-keygen -R "/var/lib/jenkins/.ssh/known_hosts" -R "$HOST" || true
                         sudo -u jenkins ssh-keyscan -T 10 "$HOST" >> /var/lib/jenkins/.ssh/known_hosts 2>/dev/null || true
                     done
 
