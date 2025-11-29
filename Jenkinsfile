@@ -66,7 +66,6 @@ pipeline {
             steps {
                 sshagent(credentials: ['ansible_ssh']) {
                     sh """
-                    cd /usr/bin/ansible &&
                     ansible-playbook -i ansible/hosts.ini ansible/deploy-quarkus.yaml
                     """
                 }
