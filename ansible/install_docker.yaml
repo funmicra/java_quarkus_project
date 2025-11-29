@@ -9,6 +9,16 @@
       - lvm2
 
   tasks:
+    - name: Install Python pip
+      package:
+        name: python3-pip
+        state: present
+
+    - name: Install Docker Python SDK
+      pip:
+        name: docker
+        executable: pip3
+
     - name: Ensure prerequisite packages are present
       package:
         name: "{{ docker_packages }}"

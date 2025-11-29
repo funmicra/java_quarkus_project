@@ -63,7 +63,7 @@ pipeline {
             steps {
                 sshagent(credentials: ['JENKINS_SSH_KEY']) {
                     sh """
-                    ansible-playbook -i ansible/hosts.ini ansible/install_docker.yaml
+                    ansible-playbook -i ansible/hosts.ini ansible/install_docker.yaml -vv
                     """
                 }
             }
@@ -73,7 +73,7 @@ pipeline {
             steps {
                 sshagent(credentials: ['JENKINS_SSH_KEY']) {
                     sh """
-                    ansible-playbook -i ansible/hosts.ini ansible/deploy-quarkus.yaml
+                    ansible-playbook -i ansible/hosts.ini ansible/deploy-quarkus.yaml -vv
                     """
                 }
             }
