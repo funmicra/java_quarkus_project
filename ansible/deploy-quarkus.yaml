@@ -2,11 +2,6 @@
   become: true
 
   tasks:
-    - name: Ensure Docker SDK for Python is present
-      package:
-        name: python3-docker
-        state: present
-
     - name: Pull image
       docker_image:
         name: "registry.black-crab.cc/demo-quarkus:latest"

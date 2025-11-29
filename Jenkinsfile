@@ -5,16 +5,9 @@ pipeline {
     }
     
     environment {
-        SUDO         = "H84zzoMc"
         REGISTRY_URL = "registry.black-crab.cc"
         IMAGE_NAME   = "demo-quarkus"
         FULL_IMAGE   = "${env.REGISTRY_URL}/${env.IMAGE_NAME}:latest"
-    }
-
-    options {
-        ansiColor('xterm')
-        timestamps()
-        buildDiscarder(logRotator(numToKeepStr: '20'))
     }
 
     stages {
@@ -65,8 +58,6 @@ pipeline {
                 ssh-keyscan -H 192.168.88.90 >> /var/lib/jenkins/.ssh/known_hosts
                 ssh-keyscan -H 192.168.88.91 >> /var/lib/jenkins/.ssh/known_hosts
                 chown -R jenkins:jenkins /var/lib/jenkins/.ssh/
-                sudo -n -u jenkins ssh -T funmicra@192.168.88.90
-                sudo -n -u jenkins ssh -T funmicra@192.168.88.91
                 """
             }
         }
@@ -81,7 +72,7 @@ pipeline {
             }
         }
 
-        stage('Deploy with Ansible') {
+        stage('Deploy quarkus App with Ansible') {
             steps {
                 sshagent(credentials: ['JENKINS_SSH_KEY']) {
                     sh """
