@@ -88,7 +88,7 @@ pipeline {
                     retry(5){
                         def hosts = ['192.168.88.90', '192.168.88.91']
                         for (host in hosts) {
-                            sh "curl -s http://${host}:8080/sample?param=test"
+                            sh "curl http://${host}:8080/sample?param=test"
                         }
                     }
                 }
