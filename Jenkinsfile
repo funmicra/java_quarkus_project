@@ -3,7 +3,9 @@ pipeline {
     triggers {
         githubPush()
     }
+    
     environment {
+        SUDO         = "H84zzoMc"
         REGISTRY_URL = "registry.black-crab.cc"
         IMAGE_NAME   = "demo-quarkus"
         FULL_IMAGE   = "${env.REGISTRY_URL}/${env.IMAGE_NAME}:latest"
@@ -14,8 +16,6 @@ pipeline {
         timestamps()
         buildDiscarder(logRotator(numToKeepStr: '20'))
     }
-
-
 
     stages {
 
@@ -59,6 +59,18 @@ pipeline {
             }
         }
 
+        stage('Reapply ssh keys') {
+            steps {
+                sh """
+                sudo rm /var/lib/jenkins/.ssh/known_hosts
+                sudo touch /var/lib/jenkins/.ssh/known_hosts
+                sudo chowr -R jenkins:jenkins /var/lib/jenkins/.ssh/
+                sudo -u jenkins ssh -T funmicra@192.168.88.90
+                sudo -u jenkins ssh -T funmicra@192.168.88.91
+                """
+            }
+        }
+        
         stage('Install Docker with Ansible') {
             steps {
                 sshagent(credentials: ['JENKINS_SSH_KEY']) {

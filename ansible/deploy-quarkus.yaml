@@ -2,6 +2,11 @@
   become: true
 
   tasks:
+    - name: Ensure Docker SDK for Python is present
+      package:
+        name: python3-docker
+        state: present
+
     - name: Pull image
       docker_image:
         name: "registry.black-crab.cc/demo-quarkus:latest"
@@ -13,5 +18,6 @@
         image: "registry.black-crab.cc/demo-quarkus:latest"
         state: started
         restart_policy: always
+        recreate: true
         published_ports:
-          - "8081:80"
+          - "8080:8080"

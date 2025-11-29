@@ -7,22 +7,18 @@
       - yum-utils
       - device-mapper-persistent-data
       - lvm2
+      - python3-pip
 
   tasks:
-    - name: Install Python pip
+    - name: Ensure prerequisite packages are present
       package:
-        name: python3-pip
+        name: "{{ docker_packages }}"
         state: present
 
     - name: Install Docker Python SDK
       pip:
         name: docker
         executable: pip3
-
-    - name: Ensure prerequisite packages are present
-      package:
-        name: "{{ docker_packages }}"
-        state: present
 
     - name: Add Docker official repository
       command: >
