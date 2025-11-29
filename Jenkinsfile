@@ -1,9 +1,8 @@
 pipeline {
     agent any
-    options {
-        skipDefaultCheckout()
+    triggers {
+        githubPush()
     }
-
     environment {
         REGISTRY_URL = "registry.black-crab.cc"
         IMAGE_NAME   = "demo-quarkus"
@@ -16,9 +15,7 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '20'))
     }
 
-    triggers {
-        githubPush()
-    }
+
 
     stages {
 
