@@ -64,7 +64,7 @@ pipeline {
 
         stage('Deploy with Ansible') {
             steps {
-                sshagent(credentials: ['ansible_ssh']) {
+                sshagent(credentials: ['JENKINS_SSH_KEY']) {
                     sh """
                     ansible-playbook -i ansible/hosts.ini ansible/deploy-quarkus.yaml
                     """
