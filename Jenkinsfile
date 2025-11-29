@@ -62,11 +62,9 @@ pipeline {
         stage('Reapply ssh keys') {
             steps {
                 sh """
-                sudo rm /var/lib/jenkins/.ssh/known_hosts
-                sudo touch /var/lib/jenkins/.ssh/known_hosts
-                sudo chowr -R jenkins:jenkins /var/lib/jenkins/.ssh/
-                sudo -u jenkins ssh -T funmicra@192.168.88.90
-                sudo -u jenkins ssh -T funmicra@192.168.88.91
+                chown -R jenkins:jenkins /var/lib/jenkins/.ssh/
+                sudo -n -u jenkins ssh -T funmicra@192.168.88.90
+                sudo -n -u jenkins ssh -T funmicra@192.168.88.91
                 """
             }
         }
