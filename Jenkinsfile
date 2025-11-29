@@ -1,9 +1,5 @@
 pipeline {
     agent any
-    triggers {
-        githubPush()
-    }
-    
     options {
         skipDefaultCheckout()
     }
@@ -20,7 +16,9 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '20'))
     }
 
-
+    triggers {
+        githubPush()
+    }
 
     stages {
 
