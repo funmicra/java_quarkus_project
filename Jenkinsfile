@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    options {
+        skipDefaultCheckout()
+    }
 
     environment {
         REGISTRY_URL = "registry.black-crab.cc"
@@ -21,11 +24,12 @@ pipeline {
 
         stage('Checkout Source') {
             steps {
-                git branch: 'master',
-                    url: 'https://github.com/funmicra/java_quarkus_project.git'
+                git credentialsId: 'github-creds',
+                    url: 'https://github.com/funmicra/java_quarkus_project.git',
+                    branch: 'master'
             }
         }
-
+        
         stage('Build Docker Image') {
             steps {
                 script {
