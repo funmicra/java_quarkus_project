@@ -5,6 +5,7 @@ pipeline {
     }
     
     environment {
+        KUBECONFIG = '/home/funmicra/.kube/config'
         REGISTRY_URL = "registry.black-crab.cc"
         IMAGE_NAME   = "demo-quarkus"
         FULL_IMAGE   = "${env.REGISTRY_URL}/${env.IMAGE_NAME}:latest"
@@ -52,49 +53,72 @@ pipeline {
             }
         }
 
-        stage('Reapply ssh keys') {
+        stage('deploy on k3s') {
             steps {
                 sh """
-                ssh-keyscan -H 192.168.88.90 >> /var/lib/jenkins/.ssh/known_hosts
-                ssh-keyscan -H 192.168.88.91 >> /var/lib/jenkins/.ssh/known_hosts
-                chown -R jenkins:jenkins /var/lib/jenkins/.ssh/
+                kubectl create namespace quarkus
+                kubectl create deployment quarkus --image=registry.black-crab.cc/demo-quarkus:latest -n quarkus
+                kubectl expose deployment quarkus \
+                    --type=NodePort \
+                    --port=8081 \
+                    --target-port=8081 \
+                    --overrides='
+                {
+                    "spec": {
+                    "ports": [{
+                        "port": 8080,
+                        "targetPort": 808,
+                        "nodePort": 30080
+                    }]
+                    }
+                }'
                 """
             }
         }
+
+    //     stage('Reapply ssh keys') {
+    //         steps {
+    //             sh """
+    //             ssh-keyscan -H 192.168.88.90 >> /var/lib/jenkins/.ssh/known_hosts
+    //             ssh-keyscan -H 192.168.88.91 >> /var/lib/jenkins/.ssh/known_hosts
+    //             chown -R jenkins:jenkins /var/lib/jenkins/.ssh/
+    //             """
+    //         }
+    //     }
         
-        stage('Install Docker with Ansible') {
-            steps {
-                sshagent(credentials: ['JENKINS_SSH_KEY']) {
-                    sh """
-                    ansible-playbook -i ansible/hosts.ini ansible/install_docker.yaml -vv
-                    """
-                }
-            }
-        }
+    //     stage('Install Docker with Ansible') {
+    //         steps {
+    //             sshagent(credentials: ['JENKINS_SSH_KEY']) {
+    //                 sh """
+    //                 ansible-playbook -i ansible/hosts.ini ansible/install_docker.yaml -vv
+    //                 """
+    //             }
+    //         }
+    //     }
 
-        stage('Deploy quarkus App with Ansible') {
-            steps {
-                sshagent(credentials: ['JENKINS_SSH_KEY']) {
-                    sh """
-                    ansible-playbook -i ansible/hosts.ini ansible/deploy-quarkus.yaml -vv
-                    """
-                }
-            }
-        }
+    //     stage('Deploy quarkus App with Ansible') {
+    //         steps {
+    //             sshagent(credentials: ['JENKINS_SSH_KEY']) {
+    //                 sh """
+    //                 ansible-playbook -i ansible/hosts.ini ansible/deploy-quarkus.yaml -vv
+    //                 """
+    //             }
+    //         }
+    //     }
 
-        stage('Verify Deployment') {
-            steps {
-                script {
-                    retry(5){
-                        def hosts = ['192.168.88.90', '192.168.88.91']
-                        for (host in hosts) {
-                            sh "curl http://${host}:8080/sample?param=test"
-                        }
-                    }
-                }
-            }
-        }
-    }
+    //     stage('Verify Deployment') {
+    //         steps {
+    //             script {
+    //                 retry(5){
+    //                     def hosts = ['192.168.88.90', '192.168.88.91']
+    //                     for (host in hosts) {
+    //                         sh "curl http://${host}:8080/sample?param=test"
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     post {
         success {
