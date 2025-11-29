@@ -10,11 +10,11 @@ pipeline {
         FULL_IMAGE   = "${env.REGISTRY_URL}/${env.IMAGE_NAME}:latest"
     }
 
-    options {
-        ansiColor('xterm')
-        timestamps()
-        buildDiscarder(logRotator(numToKeepStr: '20'))
-    }
+    // options {
+    //     ansiColor('xterm')
+    //     timestamps()
+    //     buildDiscarder(logRotator(numToKeepStr: '20'))
+    // }
 
     triggers {
         githubPush()
