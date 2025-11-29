@@ -12,7 +12,7 @@ pipeline {
 
     stages {
 
-        stage('Checkout Source') {
+        stage('Connect to Github repo') {
             steps {
                 git credentialsId: 'github-creds',
                     url: 'https://github.com/funmicra/java_quarkus_project.git',
