@@ -82,9 +82,11 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 script {
-                    def hosts = ['192.168.88.90', '192.168.88.91']
-                    for (host in hosts) {
-                        sh "curl -s http://${host}:8081/sample?param=test"
+                    retry(5){
+                        def hosts = ['192.168.88.90', '192.168.88.91']
+                        for (host in hosts) {
+                            sh "curl -s http://${host}:8081/sample?param=test"
+                        }
                     }
                 }
             }
