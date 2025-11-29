@@ -2,35 +2,80 @@ pipeline {
     agent any
 
     environment {
-        NEXUS_URL = 'http://nexus.example.com/repository/pypi-local/' // Your Nexus PyPI repo
-        NEXUS_USER = credentials('nexus-username')   // Jenkins credentials ID
-        NEXUS_PASSWORD = credentials('nexus-password')
+        REGISTRY_URL = "registry.black-crab.cc"
+        IMAGE_NAME   = "demo-quarkus"
+        FULL_IMAGE   = "${env.REGISTRY_URL}/${env.IMAGE_NAME}:latest"
+    }
+
+    options {
+        ansiColor('xterm')
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+    }
+
+    triggers {
+        githubPush()
     }
 
     stages {
-        stage('Checkout') {
+
+        stage('Checkout Source') {
             steps {
-                git branch: 'master', url: 'https://github.com/funmicra/quarkus.git'
+                git branch: 'master',
+                    url: 'https://github.com/funmicra/java_quarkus_project.git'
             }
         }
 
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh """
+                    docker build -t ${FULL_IMAGE} .
+                    """
+                }
+            }
+        }
 
+        // stage('Authenticate to Registry') {
+        //     steps {
+        //         withCredentials([usernamePassword(
+        //             credentialsId: 'docker-registry-creds',
+        //             usernameVariable: 'REG_USER',
+        //             passwordVariable: 'REG_PASS'
+        //         )]) {
+        //             sh '''
+        //             echo "$REG_PASS" | docker login ${REGISTRY_URL} -u "$REG_USER" --password-stdin
+        //             '''
+        //         }
+        //     }
+        // }
 
-        stage('Publish to Nexus') {
+        stage('Push to Nexus Registry') {
             steps {
                 sh """
-                twine upload --repository-url ${NEXUS_URL} -u ${NEXUS_USER} -p ${NEXUS_PASSWORD} dist/*
+                docker push ${FULL_IMAGE}
                 """
+            }
+        }
+
+        stage('Deploy with Ansible') {
+            steps {
+                sshagent(credentials: ['ansible_ssh']) {
+                    sh """
+                    cd /usr/bin/ansible &&
+                    ansible-playbook -i hosts.ini deploy-quarkus.yaml
+                    """
+                }
             }
         }
     }
 
     post {
         success {
-            echo 'Build and upload completed successfully.'
+            echo "Deployment pipeline executed successfully."
         }
         failure {
-            echo 'Something went wrong!'
+            echo "Pipeline execution failed. Please review logs."
         }
     }
 }
