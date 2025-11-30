@@ -56,7 +56,7 @@ pipeline {
         stage('deploy on cluster') {
             steps {
                 sh """
-                kubectl delete namespace quarkus
+                kubectl delete namespace quarkus || true
                 kubectl create namespace quarkus
                 kubectl apply -f k8s/deployment.yaml -n quarkus
                 kubectl apply -f k8s/service.yaml -n quarkus
