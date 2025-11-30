@@ -7,18 +7,12 @@
         name: "registry.black-crab.cc/demo-quarkus:latest"
         source: pull
 
-    - name: Deploy container with Docker Compose
-      community.docker.docker_compose:
-        project_src: ./ansible
-        state: present
-        restarted: true
-
-    # - name: Run container
-    #   community.docker.docker_container:
-    #     name: demo-quarkus
-    #     image: "registry.black-crab.cc/demo-quarkus:latest"
-    #     state: started
-    #     restart_policy: always
-    #     recreate: true
-    #     published_ports:
-    #       - "8080:8080"
+    - name: Run container
+      community.docker.docker_container:
+        name: demo-quarkus
+        image: "registry.black-crab.cc/demo-quarkus:latest"
+        state: started
+        restart_policy: always
+        recreate: true
+        published_ports:
+          - "8080:8080"

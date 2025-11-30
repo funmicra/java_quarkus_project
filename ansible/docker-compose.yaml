@@ -1,7 +1,0 @@
-services:
-  demo-quarkus:
-    image: registry.black-crab.cc/demo-quarkus:latest
-    container_name: demo-quarkus
-    ports:
-      - "8080:8080"
-    restart: unless-stopped
