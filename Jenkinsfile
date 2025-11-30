@@ -70,7 +70,7 @@ pipeline {
                     retry(5){
                         def hosts = ['192.168.88.81']
                         for (host in hosts) {
-                            sh "curl http://${host}:8080/sample?param=test || exit 1"
+                            sh "curl http://${host}:30080/sample?param=test || exit 1"
                         }
                     }
                 }
