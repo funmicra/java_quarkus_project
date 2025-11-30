@@ -63,5 +63,28 @@ pipeline {
                 """
             }
         }
+
+        stage('Verify Deployment') {
+            steps {
+                script {
+                    retry(5){
+                        def hosts = ['192.168.88.80', '192.168.88.81']
+                        for (host in hosts) {
+                            sh "curl http://${host}:8080/sample?param=test"
+                        }
+                    }
+                }
+            }
+
+        }
+        
+    post {
+        success {
+            echo "Deployment pipeline executed successfully."
+        }
+        failure {
+            echo "Pipeline execution failed. Please review logs."
+        }
     }
-}
+    }
+}  
