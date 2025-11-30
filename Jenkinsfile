@@ -78,13 +78,13 @@ pipeline {
 
         }
         
-    post {
-        success {
-            echo "Deployment pipeline executed successfully."
+        post {
+            success {
+                echo "Deployment pipeline executed successfully."
+            }
+            failure {
+                echo "Pipeline execution failed. Please review logs."
+            }
         }
-        failure {
-            echo "Pipeline execution failed. Please review logs."
-        }
-    }
     }
 }  
