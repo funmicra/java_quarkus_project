@@ -5,6 +5,7 @@ pipeline {
     }
     
     environment {
+        KUBECONFIG = '/var/lib/jenkins/.kube/config'
         REGISTRY_URL = "registry.black-crab.cc"
         IMAGE_NAME   = "demo-quarkus"
         FULL_IMAGE   = "${env.REGISTRY_URL}/${env.IMAGE_NAME}:latest"
@@ -12,7 +13,7 @@ pipeline {
 
     stages {
 
-        stage('Connect to Github repo') {
+        stage('Checkout Source') {
             steps {
                 git credentialsId: 'github-creds',
                     url: 'https://github.com/funmicra/java_quarkus_project.git',
@@ -51,57 +52,16 @@ pipeline {
                 """
             }
         }
-
-        stage('Reapply ssh keys') {
+        
+        stage('deploy on cluster') {
             steps {
                 sh """
-                ssh-keyscan -H 192.168.88.90 >> /var/lib/jenkins/.ssh/known_hosts
-                ssh-keyscan -H 192.168.88.91 >> /var/lib/jenkins/.ssh/known_hosts
-                chown -R jenkins:jenkins /var/lib/jenkins/.ssh/
+                kubectl delete namespace quarkus
+                kubectl create namespace quarkus
+                kubectl apply -f k8s/deployment.yaml -n quarkus
+                kubectl apply -f k8s/service.yaml -n quarkus
                 """
             }
-        }
-        
-        stage('Install Docker with Ansible') {
-            steps {
-                sshagent(credentials: ['JENKINS_SSH_KEY']) {
-                    sh """
-                    ansible-playbook -i ansible/hosts.ini ansible/install_docker.yaml -vv
-                    """
-                }
-            }
-        }
-
-        stage('Deploy quarkus App with Ansible') {
-            steps {
-                sshagent(credentials: ['JENKINS_SSH_KEY']) {
-                    sh """
-                    ansible-playbook -i ansible/hosts.ini ansible/deploy-quarkus.yaml -vv
-                    """
-                }
-            }
-        }
-
-        stage('Verify Deployment') {
-            steps {
-                script {
-                    retry(5){
-                        def hosts = ['192.168.88.90', '192.168.88.91']
-                        for (host in hosts) {
-                            sh "curl http://${host}:8080/sample?param=test"
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    post {
-        success {
-            echo "Deployment pipeline executed successfully."
-        }
-        failure {
-            echo "Pipeline execution failed. Please review logs."
         }
     }
 }

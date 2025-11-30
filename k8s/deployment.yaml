@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-quarkus
+  labels:
+    app: demo-quarkus
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: demo-quarkus
+  template:
+    metadata:
+      labels:
+        app: demo-quarkus
+    spec:
+      containers:
+      - name: demo-quarkus
+        image: registry.black-crab.cc/demo-quarkus:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-quarkus
+spec:
+  selector:
+    app: demo-quarkus
+  type: NodePort    # Use LoadBalancer if on cloud with LB support
+  ports:
+  - protocol: TCP
+    port: 8080        # Service port
+    targetPort: 8080  # Container port
+    nodePort: 30080   # Optional: external port on node for NodePort
