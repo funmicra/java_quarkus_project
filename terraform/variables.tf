@@ -1,12 +1,9 @@
 
-
-variable "pm_api_token_id"{
-  default = "PROXMOX_TOKEN_ID"
-}
-variable "pm_api_token_secret"{
-  default = "PROXMOX_TOKEN_SECRET"  
-}
-
+variable "pm_api_token_id" {}
+variable "pm_api_token_secret" {}
+variable "ciuser" {}
+variable "cipassword" {}
+variable "ssh_keys_file" {}
 variable "vm_count" {
  default = 2
 }
@@ -24,21 +21,5 @@ variable "vm_template_id" {
 }
 
 variable "target_node" {
-  default = "pve_hostname"
+  default = "Dell-Optiplex"
 }
-
-variable "ciuser" {
-  default = "funmicra"
-}
-
-variable "cipassword" {
-  default = "H84zzoMc"
-}
-
-variable "ipconfig" {
-  default = "ip=dhcp"
-}
-
-#variable "ipconfig1" {
-#  default = "ip=192.168.88.${60 + count.index}/25,gw=192.168.88.1"
-#}
