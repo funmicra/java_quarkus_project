@@ -1,10 +1,10 @@
 
 
 variable "pm_api_token_id"{
-  default = "my_id
+  default = "PROXMOX_TOKEN_ID"
 }
 variable "pm_api_token_secret"{
-  default = "my_token"  
+  default = "PROXMOX_TOKEN_SECRET"  
 }
 
 variable "vm_count" {
