@@ -8,6 +8,11 @@ variable "vm_count" {
  default = 2
 }
 
+variable "ssh_keys_file" {
+  description = "Path to SSH public key file"
+  type        = string
+}
+
 variable "vmid" {
   default = 9000
 }

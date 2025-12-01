@@ -18,7 +18,7 @@ resource "proxmox_vm_qemu""EuroDyn" {
   ciuser       = var.ciuser
   cipassword   = var.cipassword
   ciupgrade    = true
-  sshkeys   = file("./ssh.keys")
+  sshkeys = file(var.ssh_keys_file)
   ipconfig0  = "ip=192.168.88.${90 + count.index}/25,gw=192.168.88.1"
   searchdomain = "local"
   nameserver   = "8.8.8.8 1.1.1.1"
