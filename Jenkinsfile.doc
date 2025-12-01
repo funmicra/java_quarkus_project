@@ -1,17 +1,22 @@
+
+// Jenkins Pipeline to build, push Docker image and deploy Quarkus application using Ansible
 pipeline {
     agent any
     triggers {
         githubPush()
     }
     
+    // Define environment variables
     environment {
         REGISTRY_URL = "registry.black-crab.cc"
         IMAGE_NAME   = "demo-quarkus"
         FULL_IMAGE   = "${env.REGISTRY_URL}/${env.IMAGE_NAME}:latest"
     }
 
+    // Define the stages of the pipeline
     stages {
 
+        // Stage to checkout source code from GitHub
         stage('Connect to Github repo') {
             steps {
                 git credentialsId: 'github-creds',
@@ -19,7 +24,8 @@ pipeline {
                     branch: 'master'
             }
         }
-        
+
+        // Stage to build Docker image        
         stage('Build Docker Image') {
             steps {
                 script {
@@ -30,6 +36,7 @@ pipeline {
             }
         }
 
+        // Stage to authenticate to Nexus registry
         stage('Authenticate to Registry') {
             steps {
                 withCredentials([usernamePassword(
@@ -44,6 +51,7 @@ pipeline {
             }
         }
 
+        // Stage to push Docker image to Nexus registry
         stage('Push to Nexus Registry') {
             steps {
                 sh """
@@ -52,6 +60,7 @@ pipeline {
             }
         }
 
+        // Stage to reapply ssh keys
         stage('Reapply ssh keys') {
             steps {
                 sh """
@@ -61,7 +70,8 @@ pipeline {
                 """
             }
         }
-        
+
+        // Stage to install Docker using Ansible        
         stage('Install Docker with Ansible') {
             steps {
                 sshagent(credentials: ['JENKINS_SSH_KEY']) {
@@ -72,6 +82,7 @@ pipeline {
             }
         }
 
+        // Stage to deploy quarkus application using Ansible
         stage('Deploy quarkus App with Ansible') {
             steps {
                 sshagent(credentials: ['JENKINS_SSH_KEY']) {
@@ -82,6 +93,7 @@ pipeline {
             }
         }
 
+        // Stage verify deployment by sending HTTP requests
         stage('Verify Deployment') {
             steps {
                 script {
@@ -96,6 +108,7 @@ pipeline {
         }
     }
 
+    // Post actions to execute after pipeline completion
     post {
         success {
             echo "Deployment pipeline executed successfully."

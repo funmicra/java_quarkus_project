@@ -1,18 +1,21 @@
+// Jenkins Pipeline to build, push Docker image and deploy Quarkus application on Kubernetes cluster
 pipeline {
     agent any
     triggers {
         githubPush()
     }
-    
+    // Define environment variables
     environment {
         KUBECONFIG = '/var/lib/jenkins/.kube/config'
         REGISTRY_URL = "registry.black-crab.cc"
         IMAGE_NAME   = "demo-quarkus"
         FULL_IMAGE   = "${env.REGISTRY_URL}/${env.IMAGE_NAME}:latest"
     }
-
+    
+    // Define the stages of the pipeline
     stages {
 
+        // Stage to checkout source code from GitHub
         stage('Checkout Source') {
             steps {
                 git credentialsId: 'github-creds',
@@ -21,6 +24,7 @@ pipeline {
             }
         }
         
+        // Stage to build Docker image
         stage('Build Docker Image') {
             steps {
                 script {
@@ -31,6 +35,7 @@ pipeline {
             }
         }
 
+        // Stage to authenticate to Nexus registry
         stage('Authenticate to Registry') {
             steps {
                 withCredentials([usernamePassword(
@@ -45,6 +50,7 @@ pipeline {
             }
         }
 
+        // Stage to push Docker image to Nexus registry
         stage('Push to Nexus Registry') {
             steps {
                 sh """
@@ -52,7 +58,8 @@ pipeline {
                 """
             }
         }
-        
+
+        // Stage to deploy application on Kubernetes cluster        
         stage('deploy on cluster') {
             steps {
                 sh """
@@ -64,6 +71,7 @@ pipeline {
             }
         }
 
+        // Stage to verify deployment by sending HTTP requests
         stage('Verify Deployment') {
             steps {
                 script {
@@ -78,6 +86,7 @@ pipeline {
         }
     }
 
+    // Post actions to execute after pipeline completion
     post {
         success {
             echo "Deployment pipeline executed successfully."
