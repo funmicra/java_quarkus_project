@@ -5,7 +5,7 @@ metadata:
 spec:
   selector:
     app: demo-quarkus
-  type: loadBalancer
+  type: nodePort
   ports:
   - protocol: TCP
     port: 8080
