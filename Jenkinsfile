@@ -72,6 +72,8 @@ pipeline {
                 kubectl create namespace quarkus
                 kubectl apply -f k8s/deployment.yaml -n quarkus
                 kubectl apply -f k8s/service.yaml -n quarkus
+
+                sleep 10
                 """
             }
         }
