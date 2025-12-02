@@ -6,8 +6,8 @@ spec:
   selector:
     app: demo-quarkus
   type: loadBalancer
-  # ports:
-  # - protocol: TCP
-  #   port: 8080
-  #   targetPort: 8080
-  #   nodePort: 30080
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+    nodePort: 30080
