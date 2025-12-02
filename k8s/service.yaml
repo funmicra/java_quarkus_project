@@ -5,7 +5,7 @@ metadata:
 spec:
   selector:
     app: demo-quarkus
-  type: nodePort
+  type: NodePort
   ports:
   - protocol: TCP
     port: 8080
