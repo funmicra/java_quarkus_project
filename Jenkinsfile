@@ -64,7 +64,6 @@ pipeline {
             steps {
                 sh """
                 if kubectl get namespace quarkus >/dev/null 2>&1; then
-                    kubectl delete all --all -n quarkus
                     kubectl delete namespace quarkus
                 else
                     echo "Namespace 'quarkus' not present — skipping delete."
