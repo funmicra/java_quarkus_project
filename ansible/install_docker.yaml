@@ -5,6 +5,8 @@
   vars:
     docker_packages:
       - yum-utils
+      - device-mapper
+      - device-mapper-event
       - device-mapper-persistent-data
       - lvm2
       - python3-pip
@@ -14,6 +16,7 @@
       package:
         name: "{{ docker_packages }}"
         state: present
+        update_cache: yes
 
     - name: Install Docker Python SDK
       pip:
