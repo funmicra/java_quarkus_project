@@ -7,15 +7,6 @@
         name: "registry.black-crab.cc/demo-quarkus:latest"
         source: pull
 
-    - name: Check if Docker is installed
-      command: docker --version
-      register: docker_check
-      ignore_errors: yes
-
-    - name: Install Docker if not present
-      include_tasks: install_docker.yaml
-      when: docker_check.rc != 0
-
     - name: Run container
       community.docker.docker_container:
         name: demo-quarkus
