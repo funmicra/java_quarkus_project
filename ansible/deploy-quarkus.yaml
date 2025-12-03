@@ -8,8 +8,8 @@
         source: pull
 
     - name: Install Docker if not present
-        include_tasks: install_docker.yaml
-        when: docker_check.rc != 0
+      include_tasks: install_docker.yaml
+      when: docker_check.rc != 0
 
     - name: Run container
       community.docker.docker_container:
