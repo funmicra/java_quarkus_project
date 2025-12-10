@@ -8,6 +8,6 @@ output "vm_names" {
 output "vm_ids" {
   value = concat(
     [for vm in proxmox_vm_qemu.ctrl-plane : vm.vmid],
-    [for vm in proxmox_vm_qemu.wokers : vm.vmid]
+    [for vm in proxmox_vm_qemu.workers : vm.vmid]
   )
 }
