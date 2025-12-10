@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: demo-quarkus
+  name: java-quarkus
 spec:
   selector:
-    app: demo-quarkus
+    app: java-quarkus
   type: NodePort
   ports:
   - protocol: TCP

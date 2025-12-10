@@ -5,9 +5,9 @@ FROM ubuntu:22.04
 
 WORKDIR /app
 
-COPY target/demo-quarkus-1.0.0-runner /app/demo-quarkus-runner
+COPY target/java-quarkus-1.0.0-runner /app/java-quarkus-runner
 
-RUN chmod +x /app/demo-quarkus-runner
+RUN chmod +x /app/java-quarkus-runner
 
   
 
@@ -19,4 +19,4 @@ ENV QUARKUS_HTTP_PORT=8080
 
   
 
-ENTRYPOINT ["/app/demo-quarkus-runner"]
+ENTRYPOINT ["/app/java-quarkus-runner"]
