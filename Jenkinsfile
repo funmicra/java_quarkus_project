@@ -62,7 +62,7 @@ pipeline {
         }
 
         // Reapply SSH keys for Ansible
-        stage('Reapply SSH keys') {
+        stage('🔒 Reapply SSH keys') {
             when {
                 expression {
                     // Execute this stage ONLY if commit message contains [INFRA]
@@ -171,7 +171,7 @@ EOF
             }
         }
         
-        stage('Fetch Kubeconfig') {
+        stage('⚙️ Fetch Kubeconfig') {
             steps {
                 sh'''
                     ansible-playbook -i ansible/hosts.ini ansible/get-kubeconfig.yaml
@@ -224,14 +224,20 @@ EOF
                 }
             }
         }
+
+        stage('🧹 Cleanup Workspace') {
+            steps {
+                sh 'rm -rf *'
+            }
+        }
     }
 
     post {
         success {
-            echo "Pipeline executed successfully!"
+            echo "Pipeline executed successfully!✅"
         }
         failure {
-            echo "Pipeline failed. Check logs for errors."
+            echo "Pipeline failed. Check logs for errors. ⚠️"
         }
     }
 } 
