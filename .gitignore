@@ -3,3 +3,13 @@ install_docker.yaml
 Jenkinsfile.dock
 Jenkinsfile.k8s
 terraform.tfvars
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+.terraform.tfstate
+.terraform.tfstate.backup
+crash.log
+override.tfvars
+override.tfvars.json
+*_override.tf
