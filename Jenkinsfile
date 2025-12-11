@@ -180,18 +180,26 @@ EOF
         }
 
         // Stage to deploy application on Kubernetes cluster        
-        stage('deploy on cluster') {
+        // Stage to deploy application on Kubernetes cluster        
+        stage('Deploy on Cluster') {
             steps {
                 sh """
+                # Ensure namespace lifecycle integrity
                 if kubectl get namespace quarkus >/dev/null 2>&1; then
-                    kubectl delete namespace quarkus
+                    kubectl delete namespace quarkus --wait
                 else
                     echo "Namespace 'quarkus' not present — skipping delete."
                 fi
+
                 kubectl create namespace quarkus
+
+                # Deploy workload artifacts
                 kubectl apply -f k8s/deployment.yaml -n quarkus
-                kubectl apply -f k8s/service.yaml -n quarkus
-                sleep 5
+                kubectl apply -f k8s/service.yaml -n quarkus || true
+
+                # Provide post-deployment visibility
+                kubectl get pods -n quarkus
+                kubectl get svc  -n quarkus
                 """
             }
         }
