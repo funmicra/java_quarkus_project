@@ -2,11 +2,11 @@
 
 resource "proxmox_vm_qemu""ctrl-plane" {
   count       = 1
-  vmid        = 1200
+  vmid        = 1201
   onboot      = true
   vm_state    = "running"
   agent       = 1
-  name        = "${var.base_name}-${count.index + 1}"
+  name        = "ctrl-plane"
   target_node = "Dell-Optiplex"
   clone_id    = 1200
   full_clone  = true
@@ -21,7 +21,7 @@ resource "proxmox_vm_qemu""ctrl-plane" {
   cipassword   = var.cipassword
   ciupgrade    = true
   sshkeys = file(var.ssh_keys_file)
-  ipconfig0  = "ip=192.168.88.${90 + count.index}/25,gw=192.168.88.1"
+  ipconfig0  = "ip=192.168.88.90/25,gw=192.168.88.1"
   searchdomain = "local"
   nameserver   = "8.8.8.8 1.1.1.1"
   skip_ipv6 = true
@@ -81,11 +81,11 @@ resource "proxmox_vm_qemu""ctrl-plane" {
 
 resource "proxmox_vm_qemu""workers" {
   count       = var.vm_count
-  vmid        = 1200 + "${count.index + 1}"
+  vmid        = 1201 + "${count.index + 1}"
   onboot      = true
   vm_state    = "running"
   agent       = 1
-  name        = "${var.base_name}-${count.index + 1}"
+  name        = "worker-${count.index + 1}"
   target_node = "Dell-Optiplex"
   clone_id    = 1200
   full_clone  = true
