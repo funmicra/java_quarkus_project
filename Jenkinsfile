@@ -47,7 +47,7 @@ pipeline {
                         TF_VAR_ssh_keys_file=$SSH_KEYS_FILE \
                         terraform apply -auto-approve
 
-                        sleep 5
+                        sleep 20
                     '''
                 }
             }
@@ -182,6 +182,17 @@ EOF
                         }
                     }
                 }
+            }
+        }
+
+        stage('Cleanup Workspace') {
+            steps {
+                sh """
+                    echo "🔄 Executing workspace hygiene protocol..."
+                    rm -rf "${env.WORKSPACE:?}"/*
+                    rm -rf "${env.WORKSPACE:?}"/.* 2>/dev/null || true
+                    echo "✔ Workspace sanitized and ready for next pipeline cycle."
+                """
             }
         }
     }
