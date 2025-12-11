@@ -62,7 +62,7 @@ pipeline {
         }
 
         // Reapply SSH keys for Ansible
-        stage('🔒 Reapply SSH keys') {
+        stage('Reapply SSH keys') {
             when {
                 expression {
                     // Execute this stage ONLY if commit message contains [INFRA]
