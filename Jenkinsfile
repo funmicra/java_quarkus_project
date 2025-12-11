@@ -147,7 +147,7 @@ EOF
         // Build Quarkus Application
         stage('Build Quarkus App') {
             steps {
-                sh './mvnw clean package -DskipTests -Pnative -Dquarkus.package.type=uber-jar'
+                sh './mvnw clean package -DskipTests -Pnative -Dquarkus.package.type=uber-jar -X'
             }
         }
 
