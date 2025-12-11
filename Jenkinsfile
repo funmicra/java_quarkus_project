@@ -144,6 +144,13 @@ EOF
             }
         }
 
+        // Build Quarkus Application
+        stage('Build Quarkus App') {
+            steps {
+                sh './mvnw clean package -DskipTests -Pnative -Dquarkus.package.type=uber-jar'
+            }
+        }
+
         // Build Docker Image
         stage('Build Docker Image') {
             steps {
