@@ -1,6 +1,6 @@
 # --- Control Plane Node ---
 
-resource "proxmox_vm_qemu""ctrl-plane" {
+resource "proxmox_vm_qemu" "ctrl-plane" {
   count       = 1
   vmid        = 1201
   onboot      = true
@@ -79,9 +79,9 @@ resource "proxmox_vm_qemu""ctrl-plane" {
 
 # --- Worker Nodes ---
 
-resource "proxmox_vm_qemu""workers" {
+resource "proxmox_vm_qemu" "workers" {
   count       = 1
-  vmid        = 1201 + "${count.index + 1}"
+  vmid        = 1201 + count.index + 1
   onboot      = true
   vm_state    = "running"
   agent       = 1
@@ -100,7 +100,7 @@ resource "proxmox_vm_qemu""workers" {
   cipassword   = var.cipassword
   ciupgrade    = true
   sshkeys = file(var.ssh_keys_file)
-  ipconfig0  = "ip=192.168.88.${90 + count.index +1}/25,gw=192.168.88.1"
+  ipconfig0  = "ip=192.168.88.${91 + count.index}/25,gw=192.168.88.1"
   searchdomain = "local"
   nameserver   = "8.8.8.8 1.1.1.1"
   skip_ipv6 = true

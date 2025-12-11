@@ -2,3 +2,4 @@ deploy-quarkus.yaml
 install_docker.yaml
 Jenkinsfile.dock
 Jenkinsfile.k8s
+terraform.tfvars
