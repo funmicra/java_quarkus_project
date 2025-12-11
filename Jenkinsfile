@@ -184,29 +184,29 @@ EOF
         stage('Deploy on Cluster') {
             steps {
                 sh """
-                # Ensure namespace lifecycle integrity
-                if kubectl get namespace quarkus >/dev/null 2>&1; then
-                    kubectl delete namespace quarkus --wait=false
-                    echo "Awaiting finalization of namespace termination..."
+                echo "Streamlining workload refresh pipeline..."
 
-                    # Poll until namespace is *actually gone*
-                    while kubectl get namespace quarkus >/dev/null 2>&1; do
-                        echo "Namespace still terminating..."
-                        sleep 2
-                    done
-                fi
+                # Ensure namespace exists (idempotent)
+                kubectl get namespace quarkus >/dev/null 2>&1 || kubectl create namespace quarkus
 
-                kubectl create namespace quarkus
-                echo "Namespace created with clean state."
+                echo "Namespace 'quarkus' validated."
 
-                # Deploy workload artifacts
+                # Hard refresh only the application footprint
+                echo "Purging stale workloads..."
+                kubectl delete deployment --all -n quarkus --ignore-not-found
+                kubectl delete svc        --all -n quarkus --ignore-not-found
+
+                # Apply the new service contract and pod shape
+                echo "Rolling fresh artifacts..."
                 kubectl apply -f k8s/deployment.yaml -n quarkus
-                kubectl apply -f k8s/service.yaml -n quarkus || true
+                kubectl apply -f k8s/service.yaml    -n quarkus || true
 
-                # Provide post-deployment visibility
+                # Operational visibility
+                echo "Resource ledger:"
                 kubectl get pods -n quarkus
                 kubectl get svc  -n quarkus
-                sleep 5
+
+                sleep 3
                 """
             }
         }
