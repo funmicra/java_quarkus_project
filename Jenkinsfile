@@ -200,6 +200,7 @@ EOF
                 # Provide post-deployment visibility
                 kubectl get pods -n quarkus
                 kubectl get svc  -n quarkus
+                sleep 10
                 """
             }
         }
