@@ -184,17 +184,6 @@ EOF
                 }
             }
         }
-
-        stage('Cleanup Workspace') {
-            steps {
-                sh """
-                    echo "🔄 Executing workspace hygiene protocol..."
-                    rm -rf "${env.WORKSPACE:?}"/*
-                    rm -rf "${env.WORKSPACE:?}"/.* 2>/dev/null || true
-                    echo "✔ Workspace sanitized and ready for next pipeline cycle."
-                """
-            }
-        }
     }
 
     post {
