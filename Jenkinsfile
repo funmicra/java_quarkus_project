@@ -186,12 +186,18 @@ EOF
                 sh """
                 # Ensure namespace lifecycle integrity
                 if kubectl get namespace quarkus >/dev/null 2>&1; then
-                    kubectl delete namespace quarkus --wait
-                else
-                    echo "Namespace 'quarkus' not present — skipping delete."
+                    kubectl delete namespace quarkus --wait=false
+                    echo "Awaiting finalization of namespace termination..."
+
+                    # Poll until namespace is *actually gone*
+                    while kubectl get namespace quarkus >/dev/null 2>&1; do
+                        echo "Namespace still terminating..."
+                        sleep 2
+                    done
                 fi
 
                 kubectl create namespace quarkus
+                echo "Namespace created with clean state."
 
                 # Deploy workload artifacts
                 kubectl apply -f k8s/deployment.yaml -n quarkus
@@ -200,7 +206,7 @@ EOF
                 # Provide post-deployment visibility
                 kubectl get pods -n quarkus
                 kubectl get svc  -n quarkus
-                sleep 10
+                sleep 5
                 """
             }
         }
