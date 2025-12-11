@@ -180,36 +180,50 @@ EOF
         }
 
         // Stage to deploy application on Kubernetes cluster        
-        // Stage to deploy application on Kubernetes cluster        
         stage('Deploy on Cluster') {
             steps {
                 sh """
-                echo "Streamlining workload refresh pipeline..."
+                echo "Ensuring namespace readiness..."
 
-                # Ensure namespace exists (idempotent)
+                # Detect if namespace is in Terminating state
+                NS_STATE=\$(kubectl get ns quarkus -o jsonpath='{.status.phase}' 2>/dev/null || echo "Absent")
+
+                if [ "\$NS_STATE" = "Terminating" ]; then
+                    echo "Namespace stuck in Terminating. Executing hard reset..."
+
+                    # Remove finalizers to instantly unlock namespace deletion
+                    kubectl get namespace quarkus -o json | \
+                        jq 'del(.spec.finalizers)' | \
+                        kubectl replace --raw /api/v1/namespaces/quarkus/finalize -f -
+                    
+                    echo "Finalizers removed. Allowing namespace to disappear..."
+                    sleep 2
+
+                    # Poll until actually gone
+                    while kubectl get ns quarkus >/dev/null 2>&1; do
+                        echo "Waiting for namespace to vanish..."
+                        sleep 1
+                    done
+                fi
+
+                # Ensure namespace exists now
                 kubectl get namespace quarkus >/dev/null 2>&1 || kubectl create namespace quarkus
+                echo "Namespace ready."
 
-                echo "Namespace 'quarkus' validated."
-
-                # Hard refresh only the application footprint
-                echo "Purging stale workloads..."
+                echo "Refreshing workloads..."
                 kubectl delete deployment --all -n quarkus --ignore-not-found
                 kubectl delete svc        --all -n quarkus --ignore-not-found
 
-                # Apply the new service contract and pod shape
-                echo "Rolling fresh artifacts..."
+                echo "Rolling out new manifests..."
                 kubectl apply -f k8s/deployment.yaml -n quarkus
                 kubectl apply -f k8s/service.yaml    -n quarkus || true
 
-                # Operational visibility
-                echo "Resource ledger:"
                 kubectl get pods -n quarkus
                 kubectl get svc  -n quarkus
-
-                sleep 3
                 """
             }
         }
+
         
         // Stage to verify deployment by sending HTTP requests
         stage('Verify Deployment') {
