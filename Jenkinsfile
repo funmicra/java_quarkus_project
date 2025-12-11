@@ -191,6 +191,7 @@ EOF
                 kubectl create namespace quarkus
                 kubectl apply -f k8s/deployment.yaml -n quarkus
                 kubectl apply -f k8s/service.yaml -n quarkus
+                sleep 5
                 """
             }
         }
@@ -200,7 +201,7 @@ EOF
             steps {
                 script {
                     retry(5){
-                        def hosts = ['192.168.88.91']
+                        def hosts = ['192.168.88.90', '192.168.88.91']
                         for (host in hosts) {
                             sh "curl http://${host}:30080/sample?param=java || exit 1"
                         }
