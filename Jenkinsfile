@@ -23,6 +23,14 @@ pipeline {
 
         // Terraform Provision
         stage('Terraform Provision VMs') {
+            when {
+                expression {
+                    // Execute this stage ONLY if commit message contains [INFRA]
+                    currentBuild.changeSets.any { cs ->
+                        cs.items.any { it.msg.contains("[INFRA]") }
+                    }
+                }
+            }
             steps {
                 withCredentials([
                     string(credentialsId: 'PROXMOX_TOKEN_ID', variable: 'PM_API_TOKEN_ID'),
@@ -55,6 +63,14 @@ pipeline {
 
         // Reapply SSH keys for Ansible
         stage('Reapply SSH keys') {
+            when {
+                expression {
+                    // Execute this stage ONLY if commit message contains [INFRA]
+                    currentBuild.changeSets.any { cs ->
+                        cs.items.any { it.msg.contains("[INFRA]") }
+                    }
+                }
+            }
             steps {
                 sh """
                 ssh-keyscan -H 192.168.88.90 >> /var/lib/jenkins/.ssh/known_hosts
@@ -66,6 +82,14 @@ pipeline {
  
         // Deploy Kubernetes with Kubespray
         stage('Deploy Kubernetes Cluster with Kubespray') {
+            when {
+                expression {
+                    // Execute this stage ONLY if commit message contains [INFRA]
+                    currentBuild.changeSets.any { cs ->
+                        cs.items.any { it.msg.contains("[INFRA]") }
+                    }
+                }
+            }
             steps {
                 sh '''
                     rm -rf kubespray
