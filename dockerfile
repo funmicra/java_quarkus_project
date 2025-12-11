@@ -1,8 +1,6 @@
 
 FROM ubuntu:22.04
 
-  
-
 WORKDIR /app
 
 COPY target/java-quarkus-1.0.0-runner /app/java-quarkus-runner
