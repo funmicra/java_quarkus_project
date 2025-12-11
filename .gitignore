@@ -2,14 +2,37 @@ deploy-quarkus.yaml
 install_docker.yaml
 Jenkinsfile.dock
 Jenkinsfile.k8s
-terraform.tfvars
-.terraform/
-.terraform.lock.hcl
+
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
 *.tfstate
-*.tfstate.backup
-.terraform.tfstate
-.terraform.tfstate.backup
+*.tfstate.*
+terraform.tfvars
+
+
+# Crash logs
 crash.log
-override.tfvars
-override.tfvars.json
+
+# Override files
+override.tf
+override.tf.json
 *_override.tf
+*_override.tf.json
+
+# Terraform plan output
+*.tfplan
+
+# Sensitive variable files
+*.tfvars
+*.tfvars.json
+
+# CLI configuration
+.terraformrc
+terraform.rc
+
+# Backup files
+*.backup
+*.bak
+*.swp
