@@ -183,46 +183,30 @@ EOF
         stage('Deploy on Cluster') {
             steps {
                 sh """
-                echo "Ensuring namespace readiness..."
+                echo "Validating namespace runway..."
 
-                # Detect if namespace is in Terminating state
-                NS_STATE=\$(kubectl get ns quarkus -o jsonpath='{.status.phase}' 2>/dev/null || echo "Absent")
-
-                if [ "\$NS_STATE" = "Terminating" ]; then
-                    echo "Namespace stuck in Terminating. Executing hard reset..."
-
-                    # Remove finalizers to instantly unlock namespace deletion
-                    kubectl get namespace quarkus -o json | \
-                        jq 'del(.spec.finalizers)' | \
-                        kubectl replace --raw /api/v1/namespaces/quarkus/finalize -f -
-                    
-                    echo "Finalizers removed. Allowing namespace to disappear..."
-                    sleep 2
-
-                    # Poll until actually gone
-                    while kubectl get ns quarkus >/dev/null 2>&1; do
-                        echo "Waiting for namespace to vanish..."
-                        sleep 1
-                    done
+                # Create namespace only if missing
+                if ! kubectl get namespace quarkus >/dev/null 2>&1; then
+                    echo "Namespace 'quarkus' missing — provisioning..."
+                    kubectl create namespace quarkus
+                else
+                    echo "Namespace 'quarkus' present — leveraging existing environment."
                 fi
 
-                # Ensure namespace exists now
-                kubectl get namespace quarkus >/dev/null 2>&1 || kubectl create namespace quarkus
-                echo "Namespace ready."
+                echo "Rolling forward application assets..."
 
-                echo "Refreshing workloads..."
-                kubectl delete deployment --all -n quarkus --ignore-not-found
-                kubectl delete svc        --all -n quarkus --ignore-not-found
-
-                echo "Rolling out new manifests..."
+                # Smart redeploy: apply manifests directly
                 kubectl apply -f k8s/deployment.yaml -n quarkus
                 kubectl apply -f k8s/service.yaml    -n quarkus || true
 
+                echo "Surfacing runtime status..."
                 kubectl get pods -n quarkus
                 kubectl get svc  -n quarkus
+
                 """
             }
         }
+
 
         
         // Stage to verify deployment by sending HTTP requests
