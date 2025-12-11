@@ -202,6 +202,7 @@ EOF
                 echo "Surfacing runtime status..."
                 kubectl get pods -n quarkus
                 kubectl get svc  -n quarkus
+                sleep 5
 
                 """
             }
