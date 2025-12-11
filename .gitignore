@@ -9,7 +9,8 @@ Jenkinsfile.k8s
 # .tfstate files
 *.tfstate
 *.tfstate.*
-terraform.tfvars
+*.lock.hcl*
+*.tfvars*
 
 
 # Crash logs
