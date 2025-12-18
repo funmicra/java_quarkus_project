@@ -115,24 +115,6 @@ pipeline {
             }
         }
 
-        // stage('Reapply SSH keys') {
-        //     when {
-        //         expression {
-        //             // Execute this stage ONLY if commit message contains [INFRA]
-        //             currentBuild.changeSets.any { cs ->
-        //                 cs.items.any { it.msg.contains("[INFRA]") }
-        //             }
-        //         }
-        //     }
-        //     steps {
-        //         sh """
-        //         ssh-keyscan -H 192.168.88.90 >> /var/lib/jenkins/.ssh/known_hosts
-        //         ssh-keyscan -H 192.168.88.91 >> /var/lib/jenkins/.ssh/known_hosts
-        //         chown -R jenkins:jenkins /var/lib/jenkins/.ssh/
-        //         """
-        //     }
-        // }
- 
         // Deploy Kubernetes with Kubespray
         stage('Deploy Kubernetes Cluster with Kubespray') {
             when {
@@ -267,15 +249,28 @@ EOF
                 """
             }
         }
-
-
         
         // Stage to verify deployment by sending HTTP requests
         stage('Verify Deployment') {
             steps {
                 script {
-                    retry(5){
-                        def hosts = ['192.168.88.91', '192.168.88.90']
+                    // Retry the whole block up to 5 times
+                    retry(5) {
+                        // Read hosts.ini dynamically
+                        def hosts = []
+                        def inventory = readFile('ansible/hosts.ini').split('\n')
+                        for (line in inventory) {
+                            line = line.trim()
+                            if (line && !line.startsWith('[') && !line.startsWith('#')) {
+                                // Extract the ansible_host IP
+                                def matcher = line =~ /ansible_host=(\S+)/
+                                if (matcher) {
+                                    hosts << matcher[0][1]
+                                }
+                            }
+                        }
+
+                        // Verify deployment on each host
                         for (host in hosts) {
                             sh "curl http://${host}:30080/sample?param=java || exit 1"
                         }
@@ -284,9 +279,26 @@ EOF
             }
         }
 
+        stage('Announce Terraform Import Commands') {
+            steps {
+                script {
+                    // Read Terraform outputs
+                    def vm_ids = readJSON(text: sh(script: "terraform -chdir=terraform output -json vm_ids", returnStdout: true).trim())
+                    def vm_names = readJSON(text: sh(script: "terraform -chdir=terraform output -json vm_names", returnStdout: true).trim())
+
+                    // Generate import commands dynamically for all VMs
+                    vm_ids.eachWithIndex { id, idx ->
+                        def name = vm_names[idx]
+                        echo "terraform import \"proxmox_vm_qemu.${name}\" ${id}"
+                    }
+                }
+            }
+        }
+
         stage('🧹 Cleanup Workspace') {
             steps {
-                sh 'rm -rf *'
+                echo 'Cleaning Jenkins workspace...'
+                deleteDir()  // Jenkins Pipeline step to remove all files in the workspace
             }
         }
     }
