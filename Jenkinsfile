@@ -152,12 +152,17 @@ pipeline {
                     pip install -r requirements.txt
 
                     cp -rfp inventory/sample inventory/mycluster
-                    CONFIG_FILE=inventory/mycluster/hosts.yaml
+                    CONFIG_FILE="$WORKSPACE/kubespray/inventory/mycluster/hosts.yaml"
+                    HOSTS_INI="$WORKSPACE/ansible/hosts.ini"
+
+                    if [ ! -f "$HOSTS_INI" ]; then
+                        echo "ERROR: Hosts file not found: $HOSTS_INI"
+                        exit 1
+                    fi
 
                     # Extract dynamic host info from ansible/hosts.ini
-                    CTRL_PLANE_HOSTS=$(awk -F'ansible_host=' '/ctrl-plane/ {print $1 ":" $2}' ../../ansible/hosts.ini | tr -d ' ')
-                    WORKER_HOSTS=$(awk -F'ansible_host=' '/worker/ {print $1 ":" $2}' ../../ansible/hosts.ini | tr -d ' ')
-
+                    CTRL_PLANE_HOSTS=$(awk -F'ansible_host=' '/ctrl-plane/ {print $1 ":" $2}' $HOSTS_INI | tr -d ' ')                    WORKER_HOSTS=$(awk -F'ansible_host=' '/worker/ {print $1 ":" $2}' ../../ansible/hosts.ini | tr -d ' ')
+                    WORKER_HOSTS=$(awk -F'ansible_host=' '/worker/ {print $1 ":" $2}' $HOSTS_INI | tr -d ' ')
                     # Build hosts section dynamically
                     echo "all:" > $CONFIG_FILE
                     echo "  hosts:" >> $CONFIG_FILE
