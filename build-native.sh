@@ -14,5 +14,7 @@ docker pull quay.io/quarkus/ubi-quarkus-native-image:22.3-java17
 docker run --rm \
     -v "$PWD":/project \
     -w /project \
+    --entrypoint /bin/bash \
     quay.io/quarkus/ubi-quarkus-native-image:22.3-java17 \
-    ./mvnw clean package -DskipTests -Pnative -Dquarkus.package.type=uber-jar -X
+    -c "./mvnw clean package -DskipTests -Pnative -Dquarkus.package.type=uber-jar -X"
+
