@@ -97,7 +97,7 @@ resource "proxmox_vm_qemu" "ctrl-plane" {
 # --- Worker Nodes ---
 
 resource "proxmox_vm_qemu" "workers" {
-  count       = 1
+  count       = 2
   vmid        = 1201 + count.index + 1
   onboot      = true
   vm_state    = "running"
