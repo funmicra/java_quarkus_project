@@ -87,7 +87,7 @@ def main():
 
     for name, vmid, ip in zip(vm_names, vm_ids, vm_ips):
         inventory.append(
-            f"{name} ansible_host={ip} vmid={vmid}"
+            f"{name} ansible_host={ip}"
         )
 
     inventory.extend([
