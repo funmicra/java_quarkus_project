@@ -226,6 +226,16 @@ pipeline {
             }
         }
 
+        stage('Verify Docker Access') {
+            steps {
+                sh '''
+                id
+                docker version
+                docker ps
+                '''
+            }
+        }
+
         // Build Quarkus Application
         stage('Build Quarkus App (Native)') {
             steps {
