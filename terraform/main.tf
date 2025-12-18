@@ -175,6 +175,15 @@ resource "proxmox_vm_qemu" "workers" {
 
 # -----Outputs-----------
 
+locals {
+  ctrl_plane_ip = "192.168.88.90"
+
+  worker_ips = [
+    for i in range(length(proxmox_vm_qemu.workers)) :
+    "192.168.88.${91 + i}"
+  ]
+}
+
 output "vm_names" {
   value = concat(
     [for vm in proxmox_vm_qemu.ctrl-plane : vm.name],
@@ -186,6 +195,13 @@ output "vm_ids" {
   value = concat(
     [for vm in proxmox_vm_qemu.ctrl-plane : vm.vmid],
     [for vm in proxmox_vm_qemu.workers : vm.vmid]
+  )
+}
+
+output "vm_ips" {
+  value = concat(
+    [local.ctrl_plane_ip],
+    local.worker_ips
   )
 }
 

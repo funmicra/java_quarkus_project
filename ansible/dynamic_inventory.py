@@ -11,18 +11,25 @@ from pathlib import Path
 ANSIBLE_USER = "funmicra"
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-TF_DIR = (SCRIPT_DIR / "../../terraform").resolve()
+TF_DIR = (SCRIPT_DIR / "../terraform").resolve()
 OUTPUT_FILE = SCRIPT_DIR / "hosts.ini"
 
 # ------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------
 
-def tf_output(name, json_output=False):
-    cmd = ["terraform", f"-chdir={TF_DIR}", "output"]
-    if json_output:
-        cmd.append("-json")
-    cmd.append(name)
+def tf_output(name):
+    """
+    Always consume Terraform output as JSON.
+    Treat Terraform like an API, not a CLI.
+    """
+    cmd = [
+        "terraform",
+        f"-chdir={TF_DIR}",
+        "output",
+        "-json",
+        name,
+    ]
 
     try:
         result = subprocess.run(
@@ -36,16 +43,12 @@ def tf_output(name, json_output=False):
         print(e.stderr, file=sys.stderr)
         sys.exit(1)
 
-    out = result.stdout.strip()
-    return json.loads(out) if json_output else out
-
-def normalize_ip(value):
-    """
-    Ensure the IP is a clean string with no quotes or whitespace.
-    """
-    if not value:
-        return ""
-    return str(value).strip().strip('"').strip("'")
+    try:
+        return json.loads(result.stdout)
+    except json.JSONDecodeError:
+        print(f"[ERROR] terraform output '{name}' is not valid JSON", file=sys.stderr)
+        print(result.stdout, file=sys.stderr)
+        sys.exit(1)
 
 # ------------------------------------------------------------------
 # Main
@@ -57,29 +60,42 @@ def main():
         sys.exit(1)
 
     vm_names = tf_output("vm_names")
-    vm_ids = tf_output("vm_ids")
+    vm_ids   = tf_output("vm_ids")
+    vm_ips   = tf_output("vm_ips")
 
-    if not vm_names or not vm_ids:
-        print("[ERROR] vm_names or vm_ids output is empty", file=sys.stderr)
-        sys.exit(1)
+    # Type and sanity checks
+    for key, value in {
+        "vm_names": vm_names,
+        "vm_ids": vm_ids,
+        "vm_ips": vm_ips,
+    }.items():
+        if not isinstance(value, list) or not value:
+            print(f"[ERROR] Terraform output '{key}' is empty or not a list", file=sys.stderr)
+            sys.exit(1)
 
-    if len(vm_names) != len(vm_ids):
-        print("[ERROR] vm_names and vm_ids length mismatch", file=sys.stderr)
+    if not (len(vm_names) == len(vm_ids) == len(vm_ips)):
+        print(
+            "[ERROR] Terraform outputs length mismatch: "
+            f"names={len(vm_names)}, ids={len(vm_ids)}, ips={len(vm_ips)}",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     inventory = [
         "[rocky_nodes]",
     ]
 
-    for name, vmid in zip(vm_names, vm_ids):
-        inventory.append(f"{name} vmid={vmid}")
+    for name, vmid, ip in zip(vm_names, vm_ids, vm_ips):
+        inventory.append(
+            f"{name} ansible_host={ip} vmid={vmid}"
+        )
 
     inventory.extend([
         "",
         "[rocky_nodes:vars]",
         f"ansible_user={ANSIBLE_USER}",
-        f"ansible_become=true",
-        f"ansible_python_interpreter=/usr/bin/python3",
+        "ansible_become=true",
+        "ansible_python_interpreter=/usr/bin/python3",
         "",
     ])
 
