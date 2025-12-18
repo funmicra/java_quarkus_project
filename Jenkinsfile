@@ -151,6 +151,10 @@ all:
       ansible_host: 192.168.88.91
       ip: 192.168.88.91
       access_ip: 192.168.88.91
+    worker2:
+      ansible_host: 192.168.88.92
+      ip: 192.168.88.92
+      access_ip: 192.168.88.92
   children:
     kube_control_plane:
       hosts:
@@ -158,6 +162,7 @@ all:
     kube_node:
       hosts:
         worker1:
+        worker2:
     etcd:
       hosts:
         ctrl-plane:
