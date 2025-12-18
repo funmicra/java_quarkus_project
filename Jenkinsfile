@@ -61,6 +61,22 @@ pipeline {
             }
         }
 
+        stage('Announce Terraform Import Commands') {
+            steps {
+                script {
+                    // Read Terraform outputs
+                    def vm_ids = readJSON(text: sh(script: "terraform -chdir=terraform output -json vm_ids", returnStdout: true).trim())
+                    def vm_names = readJSON(text: sh(script: "terraform -chdir=terraform output -json vm_names", returnStdout: true).trim())
+
+                    // Generate import commands dynamically for all VMs
+                    vm_ids.eachWithIndex { id, idx ->
+                        def name = vm_names[idx]
+                        echo "terraform import \"proxmox_vm_qemu.${name}\" ${id}"
+                    }
+                }
+            }
+        }
+
         stage('Update Dynamic Inventory') {
             steps {
                 script {
@@ -119,7 +135,6 @@ pipeline {
         stage('Deploy Kubernetes Cluster with Kubespray') {
             when {
                 expression {
-                    // Execute this stage ONLY if commit message contains [INFRA]
                     currentBuild.changeSets.any { cs ->
                         cs.items.any { it.msg.contains("[INFRA]") }
                     }
@@ -134,48 +149,72 @@ pipeline {
                     python3 -m venv venv
                     . venv/bin/activate
                     python3 -m pip install --upgrade pip
-                    pip3 install -r requirements.txt
+                    pip install -r requirements.txt
 
                     cp -rfp inventory/sample inventory/mycluster
-                    
                     CONFIG_FILE=inventory/mycluster/hosts.yaml
 
-                    cat <<EOF > $CONFIG_FILE
-all:
-  hosts:
-    ctrl-plane:
-      ansible_host: 192.168.88.90
-      ip: 192.168.88.90
-      access_ip: 192.168.88.90
-    worker1:
-      ansible_host: 192.168.88.91
-      ip: 192.168.88.91
-      access_ip: 192.168.88.91
-    worker2:
-      ansible_host: 192.168.88.92
-      ip: 192.168.88.92
-      access_ip: 192.168.88.92
-  children:
-    kube_control_plane:
-      hosts:
-        ctrl-plane:
-    kube_node:
-      hosts:
-        worker1:
-        worker2:
-    etcd:
-      hosts:
-        ctrl-plane:
-    k8s_cluster:
-      children:
-        kube_control_plane:
-        kube_node:
-    calico_rr:
-      hosts: {}
-EOF
+                    # Extract dynamic host info from ansible/hosts.ini
+                    CTRL_PLANE_HOSTS=$(awk -F'ansible_host=' '/ctrl-plane/ {print $1 ":" $2}' ../../ansible/hosts.ini | tr -d ' ')
+                    WORKER_HOSTS=$(awk -F'ansible_host=' '/worker/ {print $1 ":" $2}' ../../ansible/hosts.ini | tr -d ' ')
 
-                    # Use Jenkins user's SSH key
-                    ansible-playbook -i inventory/mycluster/hosts.yaml \
+                    # Build hosts section dynamically
+                    echo "all:" > $CONFIG_FILE
+                    echo "  hosts:" >> $CONFIG_FILE
+
+                    # Add control-plane hosts
+                    for host in $CTRL_PLANE_HOSTS; do
+                        NAME=$(echo $host | cut -d: -f1)
+                        IP=$(echo $host | cut -d: -f2)
+                        echo "    $NAME:" >> $CONFIG_FILE
+                        echo "      ansible_host: $IP" >> $CONFIG_FILE
+                        echo "      ip: $IP" >> $CONFIG_FILE
+                        echo "      access_ip: $IP" >> $CONFIG_FILE
+                    done
+
+                    # Add worker hosts
+                    for host in $WORKER_HOSTS; do
+                        NAME=$(echo $host | cut -d: -f1)
+                        IP=$(echo $host | cut -d: -f2)
+                        echo "    $NAME:" >> $CONFIG_FILE
+                        echo "      ansible_host: $IP" >> $CONFIG_FILE
+                        echo "      ip: $IP" >> $CONFIG_FILE
+                        echo "      access_ip: $IP" >> $CONFIG_FILE
+                    done
+
+                    # Build children groups
+                    echo "  children:" >> $CONFIG_FILE
+                    echo "    kube_control_plane:" >> $CONFIG_FILE
+                    echo "      hosts:" >> $CONFIG_FILE
+                    for host in $CTRL_PLANE_HOSTS; do
+                        NAME=$(echo $host | cut -d: -f1)
+                        echo "        $NAME:" >> $CONFIG_FILE
+                    done
+
+                    echo "    kube_node:" >> $CONFIG_FILE
+                    echo "      hosts:" >> $CONFIG_FILE
+                    for host in $WORKER_HOSTS; do
+                        NAME=$(echo $host | cut -d: -f1)
+                        echo "        $NAME:" >> $CONFIG_FILE
+                    done
+
+                    echo "    etcd:" >> $CONFIG_FILE
+                    echo "      hosts:" >> $CONFIG_FILE
+                    for host in $CTRL_PLANE_HOSTS; do
+                        NAME=$(echo $host | cut -d: -f1)
+                        echo "        $NAME:" >> $CONFIG_FILE
+                    done
+
+                    echo "    k8s_cluster:" >> $CONFIG_FILE
+                    echo "      children:" >> $CONFIG_FILE
+                    echo "        kube_control_plane:" >> $CONFIG_FILE
+                    echo "        kube_node:" >> $CONFIG_FILE
+
+                    echo "    calico_rr:" >> $CONFIG_FILE
+                    echo "      hosts: {}" >> $CONFIG_FILE
+
+                    # Run Kubespray playbook
+                    ansible-playbook -i $CONFIG_FILE \
                         --private-key ~/.ssh/id_rsa \
                         -u funmicra \
                         --become --become-user=root \
@@ -185,9 +224,25 @@ EOF
         }
 
         // Build Quarkus Application
-        stage('Build Quarkus App') {
+        stage('Build Quarkus App (Native)') {
             steps {
-                sh './mvnw clean package -DskipTests -Pnative -Dquarkus.package.type=uber-jar -X'
+                sh '''
+                # Ensure Docker is available
+                if ! command -v docker &> /dev/null; then
+                    echo "Docker not found. Please install Docker on this Jenkins node."
+                    exit 1
+                fi
+
+                # Pull the Quarkus native build image
+                docker pull quay.io/quarkus/ubi-quarkus-native-image:22.3-java17
+
+                # Run the native build inside Docker
+                docker run --rm \
+                    -v $PWD:/project \
+                    -w /project \
+                    quay.io/quarkus/ubi-quarkus-native-image:22.3-java17 \
+                    ./mvnw clean package -DskipTests -Pnative -Dquarkus.package.type=uber-jar -X
+                '''
             }
         }
 
@@ -284,29 +339,13 @@ EOF
             }
         }
 
-        stage('Announce Terraform Import Commands') {
-            steps {
-                script {
-                    // Read Terraform outputs
-                    def vm_ids = readJSON(text: sh(script: "terraform -chdir=terraform output -json vm_ids", returnStdout: true).trim())
-                    def vm_names = readJSON(text: sh(script: "terraform -chdir=terraform output -json vm_names", returnStdout: true).trim())
-
-                    // Generate import commands dynamically for all VMs
-                    vm_ids.eachWithIndex { id, idx ->
-                        def name = vm_names[idx]
-                        echo "terraform import \"proxmox_vm_qemu.${name}\" ${id}"
-                    }
-                }
-            }
-        }
-
-        stage('🧹 Cleanup Workspace') {
-            steps {
-                echo 'Cleaning Jenkins workspace...'
-                deleteDir()  // Jenkins Pipeline step to remove all files in the workspace
-            }
-        }
-    }
+    //     stage('🧹 Cleanup Workspace') {
+    //         steps {
+    //             echo 'Cleaning Jenkins workspace...'
+    //             deleteDir()  // Jenkins Pipeline step to remove all files in the workspace
+    //         }
+    //     }
+    // }
 
     post {
         success {
