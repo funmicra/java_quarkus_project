@@ -1,3 +1,20 @@
+terraform {
+  required_providers {
+    proxmox = {
+      source  = "Telmate/proxmox"
+      version = "3.0.2-rc05"
+    }
+  }
+}
+
+provider "proxmox" {
+  pm_api_url          = "https://192.168.88.20:8006/api2/json"
+  pm_api_token_id     = var.pm_api_token_id
+  pm_api_token_secret = var.pm_api_token_secret
+  pm_tls_insecure     = true
+}
+
+
 # --- Control Plane Node ---
 
 resource "proxmox_vm_qemu" "ctrl-plane" {
@@ -154,4 +171,33 @@ resource "proxmox_vm_qemu" "workers" {
     bridge = "vmbr0"
   }
 
+}
+
+# -----Outputs-----------
+
+output "vm_names" {
+  value = concat(
+    [for vm in proxmox_vm_qemu.ctrl-plane : vm.name],
+    [for vm in proxmox_vm_qemu.workers : vm.name]
+  )
+}
+
+output "vm_ids" {
+  value = concat(
+    [for vm in proxmox_vm_qemu.ctrl-plane : vm.vmid],
+    [for vm in proxmox_vm_qemu.workers : vm.vmid]
+  )
+}
+
+
+#------Variables--------------
+
+variable "pm_api_token_id" {}
+variable "pm_api_token_secret" {}
+variable "ciuser" {}
+variable "cipassword" {}
+
+variable "ssh_keys_file" {
+  description = "Path to SSH public key file"
+  type        = string
 }
