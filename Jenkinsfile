@@ -54,8 +54,6 @@ pipeline {
                         TF_VAR_cipassword=$CI_PASSWORD \
                         TF_VAR_ssh_keys_file=$SSH_KEYS_FILE \
                         terraform apply -auto-approve
-
-                        sleep 20
                     '''
                 }
             }
