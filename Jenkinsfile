@@ -232,7 +232,6 @@ pipeline {
         stage('Build Quarkus App (Native)') {
             steps {
                 sh '''
-                    #!/bin/bash
                     set -e
 
                     # Ensure Docker is available
@@ -253,6 +252,8 @@ pipeline {
                 '''
             }
         }
+
+
 
 
         // Build Docker Image
