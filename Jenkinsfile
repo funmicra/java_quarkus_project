@@ -61,24 +61,77 @@ pipeline {
             }
         }
 
+        stage('Update Dynamic Inventory') {
+            steps {
+                script {
+                    // Retry inventory generation to handle first-run latency
+                    sh '''
+                        cd ansible
+                        python3 dynamic_inventory.py
+                    '''
+                }
+            }
+        }
+
         // Reapply SSH keys for Ansible
         stage('Reapply SSH keys') {
             when {
                 expression {
-                    // Execute this stage ONLY if commit message contains [INFRA]
                     currentBuild.changeSets.any { cs ->
                         cs.items.any { it.msg.contains("[INFRA]") }
                     }
                 }
             }
             steps {
-                sh """
-                ssh-keyscan -H 192.168.88.90 >> /var/lib/jenkins/.ssh/known_hosts
-                ssh-keyscan -H 192.168.88.91 >> /var/lib/jenkins/.ssh/known_hosts
-                chown -R jenkins:jenkins /var/lib/jenkins/.ssh/
-                """
+                sh '''
+                    set -e
+
+                    INVENTORY="ansible/hosts.ini"
+                    KNOWN_HOSTS="/var/lib/jenkins/.ssh/known_hosts"
+
+                    if [ ! -f "$INVENTORY" ]; then
+                    echo "[ERROR] Inventory not found: $INVENTORY"
+                    exit 1
+                    fi
+
+                    echo "[INFO] Updating known_hosts from inventory"
+
+                    # Extract hostnames / IPs:
+                    # - ignore group headers
+                    # - ignore vars
+                    # - take first column only
+                    awk '
+                    /^[[]/ { next }
+                    /^[[:space:]]*$/ { next }
+                    /=/ { next }
+                    { print $1 }
+                    ' "$INVENTORY" | while read -r host; do
+                        echo "[INFO] Scanning $host"
+                        ssh-keyscan -H "$host" >> "$KNOWN_HOSTS" 2>/dev/null || true
+                    done
+
+                    chown -R jenkins:jenkins /var/lib/jenkins/.ssh
+                '''
             }
         }
+
+        // stage('Reapply SSH keys') {
+        //     when {
+        //         expression {
+        //             // Execute this stage ONLY if commit message contains [INFRA]
+        //             currentBuild.changeSets.any { cs ->
+        //                 cs.items.any { it.msg.contains("[INFRA]") }
+        //             }
+        //         }
+        //     }
+        //     steps {
+        //         sh """
+        //         ssh-keyscan -H 192.168.88.90 >> /var/lib/jenkins/.ssh/known_hosts
+        //         ssh-keyscan -H 192.168.88.91 >> /var/lib/jenkins/.ssh/known_hosts
+        //         chown -R jenkins:jenkins /var/lib/jenkins/.ssh/
+        //         """
+        //     }
+        // }
  
         // Deploy Kubernetes with Kubespray
         stage('Deploy Kubernetes Cluster with Kubespray') {

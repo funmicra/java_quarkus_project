@@ -68,7 +68,7 @@ def main():
         sys.exit(1)
 
     inventory = [
-        "[proxmox]",
+        "[rocky_nodes]",
     ]
 
     for name, vmid in zip(vm_names, vm_ids):
@@ -76,8 +76,10 @@ def main():
 
     inventory.extend([
         "",
-        "[proxmox:vars]",
+        "[rocky_nodes:vars]",
         f"ansible_user={ANSIBLE_USER}",
+        f"ansible_become=true",
+        f"ansible_python_interpreter=/usr/bin/python3",
         "",
     ])
 
