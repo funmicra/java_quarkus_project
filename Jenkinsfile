@@ -55,17 +55,10 @@ pipeline {
                 }
             }
             steps {
-                script {
-                    // Read Terraform outputs
-                    def vm_ids = readJSON(text: sh(script: "terraform -chdir=terraform output -json vm_ids", returnStdout: true).trim())
-                    def vm_names = readJSON(text: sh(script: "terraform -chdir=terraform output -json vm_names", returnStdout: true).trim())
-
-                    // Generate import commands dynamically for all VMs
-                    vm_ids.eachWithIndex { id, idx ->
-                        def name = vm_names[idx]
-                        echo "terraform import \"proxmox_vm_qemu.${name}\" ${id}"
-                    }
-                }
+                sh '''
+                    chmod +x scripts/announce_imports.sh
+                    scripts/announce_imports.sh terraform
+                '''
             }
         }
 
