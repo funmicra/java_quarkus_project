@@ -38,25 +38,8 @@ pipeline {
                     file(credentialsId: 'PROXMOX_SSH_KEY', variable: 'SSH_KEYS_FILE')
                 ]) {
                     sh '''
-                        cd terraform
-                        
-                        TF_VAR_pm_api_token_id=$PM_API_TOKEN_ID \
-                        TF_VAR_pm_api_token_secret=$PM_API_TOKEN_SECRET \
-                        TF_VAR_ciuser=funmicra \
-                        TF_VAR_cipassword=$CI_PASSWORD \
-                        TF_VAR_ssh_keys_file=$SSH_KEYS_FILE \
-                        terraform init
-
-                        TF_VAR_pm_api_token_id=$PM_API_TOKEN_ID \
-                        TF_VAR_pm_api_token_secret=$PM_API_TOKEN_SECRET \
-                        TF_VAR_ciuser=funmicra \
-                        TF_VAR_cipassword=$CI_PASSWORD \
-                        TF_VAR_ssh_keys_file=$SSH_KEYS_FILE \
-                        terraform apply -auto-approve
-
-
-                        # Save outputs for later stages
-                        terraform output -json > terraform_outputs.json
+                        chmod +x scripts/provision_terraform.sh
+                        scripts/provision_terraform.sh                        
                     '''
                 }
             }
@@ -91,8 +74,7 @@ pipeline {
                 script {
                     // Retry inventory generation to handle first-run latency
                     sh '''
-                        cd ansible
-                        python3 dynamic_inventory.py
+                        python3 ansible/dynamic_inventory.py
                     '''
                 }
             }
@@ -109,33 +91,8 @@ pipeline {
             }
             steps {
                 sh '''
-                    set -e
-
-                    INVENTORY="ansible/hosts.ini"
-                    KNOWN_HOSTS="/var/lib/jenkins/.ssh/known_hosts"
-
-                    if [ ! -f "$INVENTORY" ]; then
-                    echo "[ERROR] Inventory not found: $INVENTORY"
-                    exit 1
-                    fi
-
-                    echo "[INFO] Updating known_hosts from inventory"
-
-                    # Extract hostnames / IPs:
-                    # - ignore group headers
-                    # - ignore vars
-                    # - take first column only
-                    awk '
-                    /^[[]/ { next }
-                    /^[[:space:]]*$/ { next }
-                    /=/ { next }
-                    { print $1 }
-                    ' "$INVENTORY" | while read -r host; do
-                        echo "[INFO] Scanning $host"
-                        ssh-keyscan -H "$host" >> "$KNOWN_HOSTS" 2>/dev/null || true
-                    done
-
-                    chown -R jenkins:jenkins /var/lib/jenkins/.ssh
+                    chmod +x scripts/update_known_hosts.sh
+                    scripts/update_known_hosts.sh
                 '''
             }
         }
@@ -220,27 +177,8 @@ pipeline {
         stage('Deploy on Cluster') {
             steps {
                 sh """
-                echo "Validating namespace runway..."
-
-                # Create namespace only if missing
-                if ! kubectl get namespace quarkus >/dev/null 2>&1; then
-                    echo "Namespace 'quarkus' missing — provisioning..."
-                    kubectl create namespace quarkus
-                else
-                    echo "Namespace 'quarkus' present — leveraging existing environment."
-                fi
-
-                echo "Rolling forward application assets..."
-
-                # Smart redeploy: apply manifests directly
-                kubectl apply -f k8s/deployment.yaml -n quarkus
-                kubectl apply -f k8s/service.yaml    -n quarkus || true
-
-                echo "Surfacing runtime status..."
-                kubectl get pods -n quarkus
-                kubectl get svc  -n quarkus
-                sleep 5
-
+                    chmod +x scripts/deploy_quarkus.sh
+                    scripts/deploy_quarkus.sh
                 """
             }
         }
