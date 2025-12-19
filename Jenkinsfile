@@ -134,7 +134,7 @@ pipeline {
         stage('Authenticate to Registry') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'nexus_registry_login',
+                    credentialsId: 'NEXUS_REGISTRY_LOGIN',
                     usernameVariable: 'REG_USER',
                     passwordVariable: 'REG_PASS'
                 )]) {
