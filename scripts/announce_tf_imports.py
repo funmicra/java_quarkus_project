@@ -29,7 +29,7 @@ with open(OUTPUT_TF, "w") as f:
         f.write(f'resource "proxmox_vm_qemu" "{name}" {{\n')
         f.write("  count = 1\n")
         f.write(f'  name  = "{name}"\n')
-        f.write("  # target_node = \"proxmox-node1\"\n")
+        f.write("  # target_node = \"Dell-Optiplex\"\n")
         f.write("  # memory = 4096\n")
         f.write("  # cores = 2\n")
         f.write("}\n\n")
