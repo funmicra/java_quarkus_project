@@ -179,31 +179,13 @@ pipeline {
         // Stage to verify deployment by sending HTTP requests
         stage('Verify Deployment') {
             steps {
-                script {
-                    // Retry the whole block up to 5 times
-                    retry(5) {
-                        // Read hosts.ini dynamically
-                        def hosts = []
-                        def inventory = readFile('ansible/hosts.ini').split('\n')
-                        for (line in inventory) {
-                            line = line.trim()
-                            if (line && !line.startsWith('[') && !line.startsWith('#')) {
-                                // Extract the ansible_host IP
-                                def matcher = line =~ /ansible_host=(\S+)/
-                                if (matcher) {
-                                    hosts << matcher[0][1]
-                                }
-                            }
-                        }
-
-                        // Verify deployment on each host
-                        for (host in hosts) {
-                            sh "curl http://${host}:30080/sample?param=java || exit 1"
-                        }
-                    }
-                }
+                sh '''
+                chmod +x scripts/verify_deployment.sh
+                scripts/verify_deployment.sh ansible/hosts.ini /sample?param=java 30080 5 5
+                '''
             }
         }
+
     }
     //     stage('🧹 Cleanup Workspace') {
     //         steps {
