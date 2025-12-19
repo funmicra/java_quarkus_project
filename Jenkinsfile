@@ -83,6 +83,14 @@ pipeline {
         }
 
         stage('Update Dynamic Inventory') {
+            when {
+                expression {
+                    // Execute this stage ONLY if commit message contains [INFRA]
+                    currentBuild.changeSets.any { cs ->
+                        cs.items.any { it.msg.contains("[INFRA]") }
+                    }
+                }
+            }
             steps {
                 script {
                     // Retry inventory generation to handle first-run latency
