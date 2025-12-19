@@ -6,7 +6,7 @@ set -euo pipefail
 # PM_API_TOKEN_ID, PM_API_TOKEN_SECRET, CI_USER, CI_PASSWORD, SSH_KEYS_FILE
 # -----------------------------
 
-OUTPUT_FILE="terraform/terraform_outputs.json"
+OUTPUT_FILE="terraform_outputs.json"
 
 cd terraform
 echo "[INFO] Initializing Terraform..."
