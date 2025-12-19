@@ -145,94 +145,14 @@ pipeline {
             when {
                 expression {
                     currentBuild.changeSets.any { cs ->
-                        cs.items.any { it.msg.contains("[INFRA]") }
+                        cs.items.any { it.msg.contains("[K8S]") }
                     }
                 }
             }
             steps {
                 sh '''
-                    rm -rf kubespray
-                    git clone https://github.com/kubernetes-sigs/kubespray.git
-                    cd kubespray
-
-                    python3 -m venv venv
-                    . venv/bin/activate
-                    python3 -m pip install --upgrade pip
-                    pip install -r requirements.txt
-
-                    cp -rfp inventory/sample inventory/mycluster
-                    CONFIG_FILE="$WORKSPACE/kubespray/inventory/mycluster/hosts.yaml"
-                    HOSTS_INI="$WORKSPACE/ansible/hosts.ini"
-
-                    if [ ! -f "$HOSTS_INI" ]; then
-                        echo "ERROR: Hosts file not found: $HOSTS_INI"
-                        exit 1
-                    fi
-
-                    # Extract dynamic host info from ansible/hosts.ini
-                    CTRL_PLANE_HOSTS=$(awk -F'ansible_host=' '/ctrl-plane/ {print $1 ":" $2}' $HOSTS_INI | tr -d ' ')                    WORKER_HOSTS=$(awk -F'ansible_host=' '/worker/ {print $1 ":" $2}' ../../ansible/hosts.ini | tr -d ' ')
-                    WORKER_HOSTS=$(awk -F'ansible_host=' '/worker/ {print $1 ":" $2}' $HOSTS_INI | tr -d ' ')
-                    # Build hosts section dynamically
-                    echo "all:" > $CONFIG_FILE
-                    echo "  hosts:" >> $CONFIG_FILE
-
-                    # Add control-plane hosts
-                    for host in $CTRL_PLANE_HOSTS; do
-                        NAME=$(echo $host | cut -d: -f1)
-                        IP=$(echo $host | cut -d: -f2)
-                        echo "    $NAME:" >> $CONFIG_FILE
-                        echo "      ansible_host: $IP" >> $CONFIG_FILE
-                        echo "      ip: $IP" >> $CONFIG_FILE
-                        echo "      access_ip: $IP" >> $CONFIG_FILE
-                    done
-
-                    # Add worker hosts
-                    for host in $WORKER_HOSTS; do
-                        NAME=$(echo $host | cut -d: -f1)
-                        IP=$(echo $host | cut -d: -f2)
-                        echo "    $NAME:" >> $CONFIG_FILE
-                        echo "      ansible_host: $IP" >> $CONFIG_FILE
-                        echo "      ip: $IP" >> $CONFIG_FILE
-                        echo "      access_ip: $IP" >> $CONFIG_FILE
-                    done
-
-                    # Build children groups
-                    echo "  children:" >> $CONFIG_FILE
-                    echo "    kube_control_plane:" >> $CONFIG_FILE
-                    echo "      hosts:" >> $CONFIG_FILE
-                    for host in $CTRL_PLANE_HOSTS; do
-                        NAME=$(echo $host | cut -d: -f1)
-                        echo "        $NAME:" >> $CONFIG_FILE
-                    done
-
-                    echo "    kube_node:" >> $CONFIG_FILE
-                    echo "      hosts:" >> $CONFIG_FILE
-                    for host in $WORKER_HOSTS; do
-                        NAME=$(echo $host | cut -d: -f1)
-                        echo "        $NAME:" >> $CONFIG_FILE
-                    done
-
-                    echo "    etcd:" >> $CONFIG_FILE
-                    echo "      hosts:" >> $CONFIG_FILE
-                    for host in $CTRL_PLANE_HOSTS; do
-                        NAME=$(echo $host | cut -d: -f1)
-                        echo "        $NAME:" >> $CONFIG_FILE
-                    done
-
-                    echo "    k8s_cluster:" >> $CONFIG_FILE
-                    echo "      children:" >> $CONFIG_FILE
-                    echo "        kube_control_plane:" >> $CONFIG_FILE
-                    echo "        kube_node:" >> $CONFIG_FILE
-
-                    echo "    calico_rr:" >> $CONFIG_FILE
-                    echo "      hosts: {}" >> $CONFIG_FILE
-
-                    # Run Kubespray playbook
-                    ansible-playbook -i $CONFIG_FILE \
-                        --private-key ~/.ssh/id_rsa \
-                        -u funmicra \
-                        --become --become-user=root \
-                        cluster.yml
+                    chmod +x scripts/deploy_k8s.sh
+                    scripts/deploy_k8s.sh
                 '''
             }
         }
