@@ -95,6 +95,9 @@ pipeline {
                 script {
                     // Retry inventory generation to handle first-run latency
                     sh '''
+                        cd terraform
+                        terraform plan
+                        cd ..
                         cd ansible
                         python3 dynamic_inventory.py
                     '''
