@@ -25,14 +25,20 @@ except subprocess.CalledProcessError:
 vm_names = json.loads(vm_names_json)
 vm_ids = json.loads(vm_ids_json)
 
-# Sanitize names for Terraform resource addressing
-sanitized_names = [re.sub(r"[^A-Za-z0-9_-]", "_", name) for name in vm_names]
+# Map Terraform-friendly names (example: 'worker-1' -> 'workers')
+# You can customize this mapping if needed
+name_map = {
+    "ctrl-plane": "ctrl-plane",
+    "worker-1": "workers",
+    "worker-2": "workers"
+}
 
-# Track duplicates
+# Track counts for index notation
 seen_counts = {}
 
 print("[INFO] You can now run these terraform import commands:")
-for name, vm_id in zip(sanitized_names, vm_ids):
-    idx = seen_counts.get(name, 0)
-    seen_counts[name] = idx + 1
-    print(f'terraform import "proxmox_vm_qemu.{name}[{idx}]" "{vm_id}"')
+for name, vm_id in zip(vm_names, vm_ids):
+    tf_name = name_map.get(name, re.sub(r"[^A-Za-z0-9_]", "_", name))
+    idx = seen_counts.get(tf_name, 0)
+    seen_counts[tf_name] = idx + 1
+    print(f'terraform import "proxmox_vm_qemu.{tf_name}[{idx}]" "{vm_id}"')
