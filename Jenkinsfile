@@ -49,7 +49,7 @@ pipeline {
             steps {
                 sh '''
                     chmod +x scripts/announce_tf_imports.sh
-                    scripts/announce_tf_imports.sh terraform
+                    bash scripts/announce_tf_imports.sh terraform
                 '''
             }
         }
