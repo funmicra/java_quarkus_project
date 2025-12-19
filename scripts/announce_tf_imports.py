@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 # Path to your Terraform outputs file
-TF_OUTPUTS_FILE = Path("terrafrm/terraform_outputs.json")
+TF_OUTPUTS_FILE = Path("terraform/terraform_outputs.json")
 
 if not TF_OUTPUTS_FILE.exists():
     print(f"[ERROR] {TF_OUTPUTS_FILE} not found!")
