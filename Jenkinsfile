@@ -242,28 +242,28 @@ pipeline {
         }
 
         
-        stage('Verify Docker Access') {
-            steps {
-                sh '''
-                id
-                docker version
-                docker ps
-                '''
-            }
-        }
+        // stage('Verify Docker Access') {
+        //     steps {
+        //         sh '''
+        //         id
+        //         docker version
+        //         docker ps
+        //         '''
+        //     }
+        // }
 
-        // Build Quarkus Application
-        stage('Build Quarkus App (Native)') {
-            steps {
-                sh '''
-                ./mvnw clean package \
-                    -DskipTests \
-                    -Pnative \
-                    -Dquarkus.native.container-build=true
-                    
-                '''
-            }
-        }
+        // // Build Quarkus Application
+        // stage('Build Quarkus App (Native)') {
+        //     steps {
+        //         sh '''
+        //         ./mvnw clean package \
+        //             -DskipTests \
+        //             -Pnative \
+        //             -Dquarkus.native.container-build=true
+
+        //         '''
+        //     }
+        // }
 
         // Build Docker Image
         stage('Build Docker Image') {
