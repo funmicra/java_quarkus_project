@@ -260,6 +260,7 @@ pipeline {
                     -DskipTests \
                     -Pnative \
                     -Dquarkus.native.container-build=true
+                    
                 '''
             }
         }
