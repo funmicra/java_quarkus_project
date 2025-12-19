@@ -8,6 +8,7 @@ set -euo pipefail
 
 OUTPUT_FILE="terraform/terraform_outputs.json"
 
+cd terraform
 echo "[INFO] Initializing Terraform..."
 TF_VAR_pm_api_token_id="$PM_API_TOKEN_ID" \
 TF_VAR_pm_api_token_secret="$PM_API_TOKEN_SECRET" \
