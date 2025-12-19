@@ -6,15 +6,7 @@ set -euo pipefail
 # PM_API_TOKEN_ID, PM_API_TOKEN_SECRET, CI_USER, CI_PASSWORD, SSH_KEYS_FILE
 # -----------------------------
 
-TF_DIR="terraform"
-OUTPUT_FILE="$TF_DIR/terraform_outputs.json"
-
-if [ ! -d "$TF_DIR" ]; then
-    echo "[ERROR] Terraform directory not found: $TF_DIR"
-    exit 1
-fi
-
-cd "$TF_DIR"
+OUTPUT_FILE="terraform/terraform_outputs.json"
 
 echo "[INFO] Initializing Terraform..."
 TF_VAR_pm_api_token_id="$PM_API_TOKEN_ID" \
