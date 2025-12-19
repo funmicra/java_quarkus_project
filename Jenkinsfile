@@ -256,8 +256,10 @@ pipeline {
         stage('Build Quarkus App (Native)') {
             steps {
                 sh '''
-                chmod +x ./build-native.sh
-                ./build-native.sh
+                ./mvnw clean package \
+                    -DskipTests \
+                    -Pnative \
+                    -Dquarkus.native.container-build=true
                 '''
             }
         }
