@@ -42,4 +42,4 @@ seen_counts = {}
 for name, vm_id in zip(sanitized_names, vm_ids):
     idx = seen_counts.get(name, 0)
     seen_counts[name] = idx + 1
-    print(f'terraform import "proxmox_vm_qemu.{name}[{idx}]" "{vm_id}"')
+    print(f'terraform import "proxmox_vm_qemu.{name}[{idx}]" "Dell-Optiplex/qemu/{vm_id}"')
