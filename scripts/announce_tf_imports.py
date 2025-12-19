@@ -1,44 +1,38 @@
 #!/usr/bin/env python3
 import json
-import subprocess
-import re
 from pathlib import Path
 
-TF_DIR = Path("terraform")
+# Path to your Terraform outputs file
+TF_OUTPUTS_FILE = Path("terrafrm/terraform_outputs.json")
 
-print("[INFO] Generating Terraform import commands for existing Proxmox VMs...")
-
-# Get Terraform outputs
-try:
-    vm_names_json = subprocess.check_output(
-        ["terraform", "-chdir=" + str(TF_DIR), "output", "-json", "vm_names"],
-        text=True
-    )
-    vm_ids_json = subprocess.check_output(
-        ["terraform", "-chdir=" + str(TF_DIR), "output", "-json", "vm_ids"],
-        text=True
-    )
-except subprocess.CalledProcessError:
-    print("[ERROR] Terraform outputs 'vm_names' or 'vm_ids' do not exist yet. Run terraform apply first.")
+if not TF_OUTPUTS_FILE.exists():
+    print(f"[ERROR] {TF_OUTPUTS_FILE} not found!")
     exit(1)
 
-vm_names = json.loads(vm_names_json)
-vm_ids = json.loads(vm_ids_json)
+# Load JSON
+with open(TF_OUTPUTS_FILE) as f:
+    tf_outputs = json.load(f)
 
-# Map Terraform-friendly names (example: 'worker-1' -> 'workers')
-# You can customize this mapping if needed
-name_map = {
+vm_names = tf_outputs["vm_names"]["value"]
+vm_ids   = tf_outputs["vm_ids"]["value"]
+
+# Map VM names to Terraform resource names
+# For example, multiple workers -> "workers" array
+resource_map = {
     "ctrl-plane": "ctrl-plane",
     "worker-1": "workers",
-    "worker-2": "workers"
+    "worker-2": "workers"  # add more if needed
 }
 
-# Track counts for index notation
+# Track indexes for array-style Terraform resources
 seen_counts = {}
 
-print("[INFO] You can now run these terraform import commands:")
+print("[INFO] You can now run these Terraform import commands:")
 for name, vm_id in zip(vm_names, vm_ids):
-    tf_name = name_map.get(name, re.sub(r"[^A-Za-z0-9_]", "_", name))
+    tf_name = resource_map.get(name, name.replace("-", "_"))
     idx = seen_counts.get(tf_name, 0)
     seen_counts[tf_name] = idx + 1
-    print(f'terraform import "proxmox_vm_qemu.{tf_name}[{idx}]" "{vm_id}"')
+
+    # Construct Proxmox import ID format
+    import_id = f"Dell-Optiplex/qemu/{vm_id}"
+    print(f'terraform import "proxmox_vm_qemu.{tf_name}[{idx}]" "{import_id}"')
