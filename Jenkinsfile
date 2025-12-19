@@ -48,8 +48,7 @@ pipeline {
         stage('Announce Terraform Import Commands') {
             steps {
                 sh '''
-                    chmod +x scripts/announce_tf_imports.sh
-                    bash scripts/announce_tf_imports.sh terraform
+                    python3 scripts/announce_tf_imports.py
                 '''
             }
         }
