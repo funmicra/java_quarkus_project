@@ -236,7 +236,6 @@ pipeline {
                 '''
             }
         }
-
         
         // stage('Verify Docker Access') {
         //     steps {
