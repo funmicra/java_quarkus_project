@@ -96,8 +96,7 @@ pipeline {
                     '''
                 }
             }
-        }
-        
+        }        
 
         // Reapply SSH keys for Ansible
         stage('Reapply SSH keys') {
