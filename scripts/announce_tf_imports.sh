@@ -41,8 +41,8 @@ done
 
 echo "[INFO] Terraform configuration written to $OUTPUT_TF"
 
-echo "[INFO] You can now run:"
-for NAME in "${NAMES[@]}"; do
-    IDX=$(echo "${!NAMES[@]}" | tr ' ' '\n' | grep -n "^$NAME\$" | cut -d: -f1)
-    echo "terraform import proxmox_vm_qemu.${NAME} ${IDS[$((IDX-1))]}"
+# Print import commands safely
+echo "[INFO] You can now run these terraform import commands:"
+for i in "${!NAMES[@]}"; do
+    echo "terraform import proxmox_vm_qemu.${NAMES[$i]} ${IDS[$i]}"
 done
