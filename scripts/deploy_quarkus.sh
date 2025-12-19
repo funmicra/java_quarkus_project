@@ -18,7 +18,7 @@ echo "Rolling forward application assets..."
 # Apply manifests (smart redeploy)
 kubectl apply -f k8s/deployment.yaml -n "$NAMESPACE"
 kubectl apply -f k8s/service.yaml    -n "$NAMESPACE" || true
-
+sleep 10
 echo "Surfacing runtime status..."
 kubectl get pods -n "$NAMESPACE"
 kubectl get svc  -n "$NAMESPACE"
