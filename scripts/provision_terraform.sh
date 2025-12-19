@@ -6,7 +6,7 @@ set -euo pipefail
 # PM_API_TOKEN_ID, PM_API_TOKEN_SECRET, CI_USER, CI_PASSWORD, SSH_KEYS_FILE
 # -----------------------------
 
-TF_DIR="${1:-terraform}"
+TF_DIR="terraform"
 OUTPUT_FILE="$TF_DIR/terraform_outputs.json"
 
 if [ ! -d "$TF_DIR" ]; then
@@ -36,3 +36,5 @@ echo "[INFO] Saving Terraform outputs to $OUTPUT_FILE..."
 terraform output -json > "$OUTPUT_FILE"
 
 echo "[OK] Terraform provisioning complete"
+
+
