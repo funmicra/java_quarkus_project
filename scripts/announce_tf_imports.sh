@@ -1,5 +1,4 @@
-
-#!/usr/bin/env bash
+#!/usr/bin/sh
 set -euo pipefail
 
 TF_DIR="terraform"
