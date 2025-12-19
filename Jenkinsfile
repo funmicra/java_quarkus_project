@@ -35,11 +35,12 @@ pipeline {
                     string(credentialsId: 'PROXMOX_TOKEN_ID', variable: 'PM_API_TOKEN_ID'),
                     string(credentialsId: 'PROXMOX_TOKEN_SECRET', variable: 'PM_API_TOKEN_SECRET'),
                     string(credentialsId: 'VM_CI_PASSWORD', variable: 'CI_PASSWORD'),
+                    string(credentialsId: 'VM_CI_USER', variable: 'CI_USER'),
                     file(credentialsId: 'PROXMOX_SSH_KEY', variable: 'SSH_KEYS_FILE')
                 ]) {
                     sh '''
                         chmod +x scripts/provision_terraform.sh
-                        scripts/provision_terraform.sh                        
+                        bashs scripts/provision_terraform.sh                        
                     '''
                 }
             }
@@ -76,7 +77,7 @@ pipeline {
             steps {
                 sh '''
                     chmod +x scripts/update_known_hosts.sh
-                    scripts/update_known_hosts.sh
+                    bash scripts/update_known_hosts.sh
                 '''
             }
         }
@@ -93,7 +94,7 @@ pipeline {
             steps {
                 sh '''
                     chmod +x scripts/deploy_k8s.sh
-                    scripts/deploy_k8s.sh
+                    bash scripts/deploy_k8s.sh
                 '''
             }
         }
@@ -162,7 +163,7 @@ pipeline {
             steps {
                 sh """
                     chmod +x scripts/deploy_quarkus.sh
-                    scripts/deploy_quarkus.sh
+                    bash scripts/deploy_quarkus.sh
                 """
             }
         }
@@ -172,7 +173,7 @@ pipeline {
             steps {
                 sh '''
                 chmod +x scripts/verify_deployment.sh
-                scripts/verify_deployment.sh ansible/hosts.ini /sample?param=java 30080 5 5
+                bash scripts/verify_deployment.sh ansible/hosts.ini /sample?param=java 30080 5 5
                 '''
             }
         }
