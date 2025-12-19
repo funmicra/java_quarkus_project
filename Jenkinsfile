@@ -40,7 +40,7 @@ pipeline {
                 ]) {
                     sh '''
                         chmod +x scripts/provision_terraform.sh
-                        bashs scripts/provision_terraform.sh                        
+                        bash scripts/provision_terraform.sh                        
                     '''
                 }
             }
