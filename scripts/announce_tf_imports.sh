@@ -22,7 +22,7 @@ VM_NAMES=$(jq -r '.vm_names[]' "$OUTPUT_FILE")
 
 # Combine names and IDs
 paste <(echo "$VM_NAMES") <(echo "$VM_IDS") | while read -r name id; do
-    echo "terraform import \"proxmox_vm_qemu.${name}\" ${id}"
+    echo "terraform import proxmox_vm_qemu.${name} ${id}"
 done
 
 echo "[OK] Done generating Terraform import commands."
