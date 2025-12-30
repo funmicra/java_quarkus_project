@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        REGISTRY_URL = "registry.black-crab.cc"
+        REGISTRY_URL = "registry.syndicate"
         IMAGE_NAME   = "java-quarkus"
         FULL_IMAGE   = "${env.REGISTRY_URL}/${env.IMAGE_NAME}:latest"
     }
